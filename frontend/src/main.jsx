@@ -111,30 +111,36 @@ function describeCameraError(error) {
 
 function getCaptureMetadata() {
   const capturedAt = new Date();
-  const dateTime = new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+  const date = new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+  }).format(capturedAt);
+  const time = new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   }).format(capturedAt);
+  const dateTime = `${time} · ${date}`;
 
   return new Promise(resolve => {
     if (!navigator.geolocation) {
-      resolve({ dateTime, location: 'Không có dữ liệu vị trí' });
+      resolve({ date, time, dateTime, location: 'Không có dữ liệu vị trí', accuracy: null });
       return;
     }
     navigator.geolocation.getCurrentPosition(
       position => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
         resolve({
+          date,
+          time,
           dateTime,
           location: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          accuracy: Math.round(accuracy),
         });
       },
-      () => resolve({ dateTime, location: 'Không có dữ liệu vị trí' }),
+      () => resolve({ date, time, dateTime, location: 'Không có dữ liệu vị trí', accuracy: null }),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 },
     );
   });
@@ -150,6 +156,7 @@ function getCurrentCoordinates() {
       position => resolve({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
+        accuracy: Math.round(position.coords.accuracy),
       }),
       () => resolve(null),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 },
@@ -182,36 +189,51 @@ function drawVideoFrame(canvas, video, mirror = false) {
 function stampCaptureMetadata(canvas, metadata) {
   const context = canvas.getContext('2d');
   const scale = Math.max(1, canvas.width / 1280);
-  const padding = Math.round(18 * scale);
-  const lineHeight = Math.round(26 * scale);
-  const fontSize = Math.round(18 * scale);
-  const lines = [
-    `Thời gian: ${metadata.dateTime}`,
-    `Vị trí: ${metadata.location}`,
-  ];
+  const padding = Math.round(24 * scale);
+  const bandHeight = Math.round(132 * scale);
+  const y = canvas.height - bandHeight;
 
-  context.font = `700 ${fontSize}px Arial, sans-serif`;
-  const boxWidth = Math.min(
-    canvas.width - padding * 2,
-    Math.max(...lines.map(line => context.measureText(line).width)) + padding * 2,
-  );
-  const boxHeight = lineHeight * lines.length + padding * 1.5;
-  const x = canvas.width - boxWidth - padding;
-  const y = canvas.height - boxHeight - padding;
+  const gradient = context.createLinearGradient(0, y, 0, canvas.height);
+  gradient.addColorStop(0, 'rgba(10, 18, 36, 0.20)');
+  gradient.addColorStop(0.25, 'rgba(10, 18, 36, 0.78)');
+  gradient.addColorStop(1, 'rgba(10, 18, 36, 0.96)');
+  context.fillStyle = gradient;
+  context.fillRect(0, y, canvas.width, bandHeight);
 
-  context.fillStyle = 'rgba(15, 23, 42, 0.78)';
-  context.fillRect(x, y, boxWidth, boxHeight);
-  context.textAlign = 'right';
-  context.textBaseline = 'middle';
+  context.fillStyle = '#ef4444';
+  context.fillRect(0, y, Math.round(7 * scale), bandHeight);
+
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
   context.fillStyle = '#ffffff';
-  lines.forEach((line, index) => {
-    context.fillText(
-      line,
-      canvas.width - padding * 2,
-      y + padding + lineHeight * (index + 0.5),
-      boxWidth - padding * 2,
-    );
-  });
+  context.font = `900 ${Math.round(34 * scale)}px Arial, sans-serif`;
+  context.fillText(metadata.time, padding, y + Math.round(55 * scale));
+
+  context.font = `700 ${Math.round(16 * scale)}px Arial, sans-serif`;
+  context.fillStyle = '#fca5a5';
+  context.fillText(metadata.date, padding, y + Math.round(85 * scale));
+
+  context.fillStyle = '#ffffff';
+  context.font = `700 ${Math.round(17 * scale)}px Arial, sans-serif`;
+  const locationLabel = `GPS  ${metadata.location}`;
+  context.fillText(locationLabel, padding, y + Math.round(113 * scale), canvas.width * 0.68);
+
+  if (metadata.accuracy) {
+    context.fillStyle = '#cbd5e1';
+    context.font = `600 ${Math.round(13 * scale)}px Arial, sans-serif`;
+    context.fillText(`Độ chính xác ±${metadata.accuracy}m`, canvas.width * 0.54, y + Math.round(113 * scale));
+  }
+
+  context.textAlign = 'right';
+  context.fillStyle = '#ffffff';
+  context.font = `900 ${Math.round(18 * scale)}px Arial, sans-serif`;
+  context.fillText('VINLAB', canvas.width - padding, y + Math.round(55 * scale));
+  context.fillStyle = '#fda4af';
+  context.font = `700 ${Math.round(12 * scale)}px Arial, sans-serif`;
+  context.fillText('SMART CHECK-IN', canvas.width - padding, y + Math.round(78 * scale));
+  context.fillStyle = '#94a3b8';
+  context.font = `600 ${Math.round(11 * scale)}px Arial, sans-serif`;
+  context.fillText('Ảnh có dấu thời gian & vị trí', canvas.width - padding, y + Math.round(102 * scale));
 }
 
 function canvasToJpegFile(canvas, filename) {
@@ -1975,6 +1997,12 @@ function FaceDetect({ registerCameraStop, currentUser }) {
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [livenessPassed, setLivenessPassed] = useState(false);
   const [livenessChecking, setLivenessChecking] = useState(false);
+  const [liveStamp, setLiveStamp] = useState({
+    time: '--:--:--',
+    date: '--/--/----',
+    location: 'Đang lấy vị trí...',
+    accuracy: null,
+  });
 
   useEffect(() => {
     api('/sessions')
@@ -1983,6 +2011,36 @@ function FaceDetect({ registerCameraStop, currentUser }) {
         setSelectedSessionId(String(rows[0]?.id || ''));
       })
       .catch(error => setMessage(`❌ ${error.message}`));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    let location = 'Đang lấy vị trí...';
+    let accuracy = null;
+    getCurrentCoordinates().then(coordinates => {
+      if (!active) return;
+      if (coordinates) {
+        location = `${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}`;
+        accuracy = coordinates.accuracy || null;
+      } else {
+        location = 'Không có dữ liệu vị trí';
+      }
+      setLiveStamp(current => ({ ...current, location, accuracy }));
+    });
+    const updateClock = () => {
+      const now = new Date();
+      setLiveStamp(current => ({
+        ...current,
+        time: now.toLocaleTimeString('vi-VN', { hour12: false }),
+        date: now.toLocaleDateString('vi-VN'),
+      }));
+    };
+    updateClock();
+    const timer = window.setInterval(updateClock, 1000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
   }, []);
 
   const stopFaceCamera = useCallback(async () => {
@@ -2177,6 +2235,16 @@ function FaceDetect({ registerCameraStop, currentUser }) {
             <i className="corner corner-br" />
           </div>
           <div className="camera-caption"><Activity size={15} />Đang tìm khuôn mặt...</div>
+          <div className="timemark-live">
+            <div>
+              <strong>{liveStamp.time}</strong>
+              <span>{liveStamp.date}</span>
+            </div>
+            <div>
+              <b><MapPin size={13} />{liveStamp.location}</b>
+              <small>{liveStamp.accuracy ? `Độ chính xác ±${liveStamp.accuracy}m` : 'VINLAB SMART CHECK-IN'}</small>
+            </div>
+          </div>
           {cameraFailed && (
             <div className="face-camera-error">
               <Camera size={34} />

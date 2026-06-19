@@ -959,6 +959,38 @@ button {
   @apply absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-slate-950/70 px-4 py-2 text-xs font-bold text-white backdrop-blur;
 }
 
+.timemark-live {
+  @apply pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between gap-3 border-l-4 border-red-500 bg-gradient-to-t from-slate-950 via-slate-950/85 to-transparent px-4 pb-4 pt-12 text-white;
+}
+
+.timemark-live > div:first-child {
+  @apply shrink-0;
+}
+
+.timemark-live strong {
+  @apply block text-2xl font-black leading-none;
+}
+
+.timemark-live span {
+  @apply mt-1 block text-xs font-bold text-red-300;
+}
+
+.timemark-live > div:last-child {
+  @apply min-w-0 text-right;
+}
+
+.timemark-live b {
+  @apply flex items-center justify-end gap-1 truncate text-xs;
+}
+
+.timemark-live small {
+  @apply mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-300;
+}
+
+.camera-frame .camera-caption {
+  @apply bottom-28;
+}
+
 .face-camera-error {
   @apply absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-slate-950/90 px-6 text-center text-white backdrop-blur-sm;
 }
