@@ -1,0 +1,4 @@
+.venv
+lab_attendance.db
+**/__pycache__
+*.pyc

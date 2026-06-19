@@ -1,0 +1,555 @@
+@import "tailwindcss";
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f7f8fc;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 4%, rgba(239, 68, 68, 0.08), transparent 24rem),
+    radial-gradient(circle at 94% 28%, rgba(6, 182, 212, 0.08), transparent 26rem),
+    #f7f8fc;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+  @apply relative min-h-screen overflow-x-hidden;
+}
+
+.ambient {
+  @apply pointer-events-none fixed rounded-full blur-3xl;
+}
+
+.ambient-one {
+  @apply -left-40 top-40 h-80 w-80 bg-red-200/30;
+}
+
+.ambient-two {
+  @apply -right-48 top-96 h-96 w-96 bg-cyan-200/30;
+}
+
+.topbar {
+  @apply sticky top-0 z-40 border-b border-white/70 bg-white/85 backdrop-blur-xl;
+  box-shadow: 0 10px 40px rgba(34, 43, 69, 0.05);
+}
+
+.brand-mark {
+  @apply relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-rose-700 text-xl font-black italic text-white;
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.28);
+}
+
+.brand-mark::after {
+  content: "";
+  @apply absolute -right-2 -top-3 h-8 w-8 rounded-full bg-orange-300/70 blur-sm;
+}
+
+.brand-mark span {
+  @apply relative z-10;
+}
+
+.brand-pill {
+  @apply rounded-md bg-red-50 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-red-600;
+}
+
+.status-pill {
+  @apply flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700;
+}
+
+.status-dot {
+  @apply h-2 w-2 rounded-full bg-emerald-500;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+  animation: pulse-dot 2s infinite;
+}
+
+.sidebar-card {
+  @apply sticky top-24 rounded-[1.75rem] border border-white bg-white/80 p-3 backdrop-blur;
+  box-shadow: 0 20px 60px rgba(45, 55, 82, 0.08);
+}
+
+.nav-item {
+  @apply flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm text-slate-600 transition duration-200 hover:bg-slate-50 hover:text-slate-950;
+}
+
+.nav-item-active {
+  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white;
+  box-shadow: 0 12px 26px rgba(225, 29, 72, 0.24);
+}
+
+.nav-item-active:hover {
+  @apply text-white;
+}
+
+.nav-icon {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500;
+}
+
+.nav-item-active .nav-icon {
+  @apply bg-white/15 text-white;
+}
+
+.sidebar-highlight {
+  @apply relative mt-5 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-5 text-white;
+}
+
+.sidebar-highlight::after {
+  content: "";
+  @apply absolute -bottom-10 -right-8 h-28 w-28 rounded-full bg-red-500/40 blur-2xl;
+}
+
+.hero-panel {
+  @apply relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 px-6 py-8 text-white sm:px-9 sm:py-10;
+  box-shadow: 0 24px 60px rgba(225, 29, 72, 0.23);
+}
+
+.hero-panel h2 {
+  @apply mt-3 text-3xl font-black tracking-tight sm:text-4xl;
+}
+
+.hero-panel p {
+  @apply mt-3 max-w-xl text-sm font-medium leading-relaxed text-white/80 sm:text-base;
+}
+
+.eyebrow {
+  @apply inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] backdrop-blur;
+}
+
+.hero-orbit {
+  @apply pointer-events-none absolute rounded-full border border-white/20;
+}
+
+.hero-orbit-one {
+  @apply -right-10 -top-24 h-64 w-64;
+}
+
+.hero-orbit-two {
+  @apply -bottom-28 right-20 h-52 w-52;
+}
+
+.hero-sparkle {
+  @apply absolute right-10 top-9 text-yellow-200 opacity-80;
+}
+
+.card,
+.session-card {
+  @apply rounded-[1.75rem] border border-white bg-white p-5 sm:p-6;
+  box-shadow: 0 18px 55px rgba(44, 54, 83, 0.08);
+}
+
+.card {
+  @apply transition duration-300;
+}
+
+.card:hover {
+  box-shadow: 0 22px 65px rgba(44, 54, 83, 0.11);
+}
+
+.camera-permission-card {
+  @apply mx-auto flex max-w-2xl flex-col items-center rounded-[2rem] border border-white bg-white p-6 text-center sm:p-10;
+  box-shadow: 0 22px 65px rgba(44, 54, 83, 0.11);
+}
+
+.camera-permission-icon {
+  @apply mb-5 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-gradient-to-br from-red-600 to-orange-500 text-white;
+  box-shadow: 0 16px 35px rgba(225, 29, 72, 0.28);
+}
+
+.camera-permission-card h3 {
+  @apply mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl;
+}
+
+.camera-permission-description {
+  @apply mt-3 max-w-xl text-sm leading-relaxed text-slate-500 sm:text-base;
+}
+
+.camera-permission-note {
+  @apply mt-6 flex max-w-xl items-start gap-3 rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-left text-sm font-semibold leading-relaxed text-cyan-800;
+}
+
+.camera-permission-note svg {
+  @apply mt-0.5 shrink-0;
+}
+
+.section-heading {
+  @apply flex items-start gap-3;
+}
+
+.section-icon {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600;
+}
+
+.section-kicker {
+  @apply text-[10px] font-black uppercase tracking-[0.2em] text-red-500;
+}
+
+.section-heading h3 {
+  @apply mt-0.5 text-xl font-black tracking-tight text-slate-950;
+}
+
+.section-heading > div > p:last-child:not(.section-kicker) {
+  @apply mt-1 text-sm leading-relaxed text-slate-500;
+}
+
+.field-label {
+  @apply text-xs font-extrabold uppercase tracking-[0.08em] text-slate-500;
+}
+
+.input {
+  @apply w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-semibold normal-case tracking-normal text-slate-900 outline-none transition placeholder:font-medium placeholder:text-slate-400 hover:border-slate-300 focus:border-red-400 focus:bg-white focus:ring-4 focus:ring-red-100;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-3 text-sm font-extrabold text-white transition duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none;
+  box-shadow: 0 12px 25px rgba(225, 29, 72, 0.22);
+}
+
+.btn:hover:not(:disabled) {
+  box-shadow: 0 15px 30px rgba(225, 29, 72, 0.3);
+}
+
+.btn-secondary {
+  @apply inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-[0.99];
+}
+
+.count-badge {
+  @apply shrink-0 rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-extrabold text-cyan-700;
+}
+
+.student-row {
+  @apply flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3 transition hover:border-red-100 hover:bg-red-50/40;
+}
+
+.student-avatar {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-orange-400 font-black text-white;
+}
+
+.class-chip {
+  @apply shrink-0 rounded-full px-3 py-1 text-xs font-extrabold;
+}
+
+.chip-0 {
+  @apply bg-red-50 text-red-600;
+}
+
+.chip-1 {
+  @apply bg-cyan-50 text-cyan-700;
+}
+
+.chip-2 {
+  @apply bg-amber-50 text-amber-700;
+}
+
+.session-card {
+  @apply flex transition duration-300 hover:-translate-y-1;
+}
+
+.qr-wrap {
+  @apply shrink-0 rounded-2xl border border-slate-100 bg-white p-2;
+  box-shadow: 0 10px 30px rgba(31, 41, 55, 0.09);
+}
+
+.live-chip {
+  @apply inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700;
+}
+
+.live-chip span {
+  @apply h-2 w-2 rounded-full bg-emerald-500;
+  animation: pulse-dot 2s infinite;
+}
+
+.live-chip-waiting {
+  @apply bg-amber-50 text-amber-700;
+}
+
+.live-chip-waiting span {
+  @apply bg-amber-500;
+}
+
+.info-chip {
+  @apply inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-600;
+}
+
+.token-box {
+  @apply block max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500;
+}
+
+.scanner-shell {
+  @apply relative overflow-hidden rounded-[1.5rem] border-4 border-slate-900 bg-slate-950 p-2;
+  min-height: 360px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.2);
+}
+
+.scanner-status {
+  @apply absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white;
+}
+
+.scanner-status-waiting {
+  @apply bg-amber-500;
+}
+
+#qr-reader {
+  @apply overflow-hidden rounded-[1.15rem] border-0 bg-slate-950 text-white;
+  min-height: 340px;
+}
+
+#qr-reader video {
+  @apply min-h-[340px] w-full object-cover;
+}
+
+.scanner-retry {
+  @apply absolute inset-2 z-10 flex flex-col items-center justify-center gap-3 rounded-[1.15rem] bg-slate-950 px-5 text-center font-bold text-white;
+}
+
+.scanner-retry svg {
+  @apply text-red-400;
+}
+
+.scanner-retry button {
+  @apply rounded-xl bg-red-600 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-red-500;
+}
+
+.result-message {
+  @apply rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700;
+}
+
+.capture-preview {
+  @apply overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 p-2;
+}
+
+.capture-preview p {
+  @apply px-2 py-2 text-xs font-extrabold uppercase tracking-wider text-white;
+}
+
+.capture-preview img {
+  @apply aspect-[4/3] w-full rounded-xl object-contain;
+}
+
+.checkin-methods {
+  @apply grid gap-3 rounded-[1.75rem] border border-white bg-white p-2 sm:grid-cols-2;
+  box-shadow: 0 18px 55px rgba(44, 54, 83, 0.08);
+}
+
+.checkin-method {
+  @apply flex items-center gap-3 rounded-2xl px-4 py-3 text-left text-slate-500 transition hover:bg-slate-50;
+}
+
+.checkin-method:disabled {
+  @apply cursor-wait opacity-70;
+}
+
+.checkin-method > span {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition;
+}
+
+.checkin-method strong {
+  @apply block text-sm font-black text-slate-800;
+}
+
+.checkin-method small {
+  @apply mt-0.5 block text-xs font-medium text-slate-400;
+}
+
+.checkin-method-active {
+  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white;
+  box-shadow: 0 12px 26px rgba(225, 29, 72, 0.22);
+}
+
+.checkin-method-active:hover {
+  @apply bg-gradient-to-r from-red-600 to-rose-500;
+}
+
+.checkin-method-active > span {
+  @apply bg-white/15 text-white;
+}
+
+.checkin-method-active strong {
+  @apply text-white;
+}
+
+.checkin-method-active small {
+  @apply text-white/70;
+}
+
+.camera-switching {
+  @apply flex items-center justify-center gap-2 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-extrabold text-amber-700;
+}
+
+.camera-switching svg {
+  animation: camera-spin 1s linear infinite;
+}
+
+.tip-card,
+.security-card {
+  @apply flex items-start gap-3 rounded-[1.5rem] border p-5;
+}
+
+.tip-card {
+  @apply border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50;
+}
+
+.tip-icon {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-400 text-white;
+}
+
+.security-card {
+  @apply border-cyan-100 bg-gradient-to-br from-cyan-50 to-sky-50 text-cyan-700;
+}
+
+.camera-frame {
+  @apply relative mx-auto aspect-[4/3] w-full max-w-4xl overflow-hidden rounded-[2rem] bg-slate-950;
+  border: 5px solid transparent;
+  background:
+    linear-gradient(#0f172a, #0f172a) padding-box,
+    linear-gradient(135deg, #ef4444, #f97316 48%, #06b6d4) border-box;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+}
+
+.camera-frame video {
+  @apply h-full w-full object-cover;
+  transform: scaleX(-1);
+}
+
+.camera-vignette {
+  @apply pointer-events-none absolute inset-0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(15, 23, 42, 0.46) 100%);
+}
+
+.face-guide {
+  @apply pointer-events-none absolute left-1/2 top-1/2 h-[72%] w-[55%] -translate-x-1/2 -translate-y-1/2 rounded-[45%];
+  border: 2px solid rgba(255, 255, 255, 0.42);
+}
+
+.corner {
+  @apply absolute h-12 w-12 border-red-400;
+}
+
+.corner-tl {
+  @apply -left-2 -top-2 rounded-tl-3xl border-l-4 border-t-4;
+}
+
+.corner-tr {
+  @apply -right-2 -top-2 rounded-tr-3xl border-r-4 border-t-4;
+}
+
+.corner-bl {
+  @apply -bottom-2 -left-2 rounded-bl-3xl border-b-4 border-l-4;
+}
+
+.corner-br {
+  @apply -bottom-2 -right-2 rounded-br-3xl border-b-4 border-r-4;
+}
+
+.camera-caption {
+  @apply absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-slate-950/70 px-4 py-2 text-xs font-bold text-white backdrop-blur;
+}
+
+.face-camera-error {
+  @apply absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-slate-950/90 px-6 text-center text-white backdrop-blur-sm;
+}
+
+.face-camera-error svg {
+  @apply text-red-400;
+}
+
+.face-camera-error p {
+  @apply text-lg font-black;
+}
+
+.face-camera-error small {
+  @apply max-w-md text-sm leading-relaxed text-slate-300;
+}
+
+.face-camera-error button {
+  @apply mt-1 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-red-500;
+}
+
+.preview-image {
+  @apply aspect-[4/3] w-full rounded-[1.5rem] bg-slate-950 object-contain;
+}
+
+.preview-placeholder {
+  @apply flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-[1.5rem] border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-semibold text-slate-400;
+}
+
+.empty-state {
+  @apply flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/70 p-6 text-center font-semibold text-slate-400;
+}
+
+.mobile-nav {
+  @apply fixed bottom-3 left-3 right-3 z-50 grid grid-cols-3 rounded-[1.5rem] border border-white/80 bg-white/90 p-2 backdrop-blur-xl;
+  box-shadow: 0 18px 50px rgba(30, 41, 59, 0.2);
+}
+
+.mobile-nav-item {
+  @apply flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-bold text-slate-400 transition;
+}
+
+.mobile-nav-active {
+  @apply bg-red-50 text-red-600;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.82); }
+}
+
+@keyframes camera-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .hero-panel {
+    @apply rounded-[1.5rem] px-5 py-7;
+  }
+
+  .hero-sparkle {
+    @apply right-5 top-6;
+  }
+
+  .card,
+  .session-card {
+    @apply rounded-[1.5rem] p-4;
+  }
+
+  .scanner-shell {
+    min-height: 300px;
+  }
+
+  #qr-reader,
+  #qr-reader video {
+    min-height: 280px;
+  }
+
+  .face-guide {
+    @apply h-[74%] w-[64%];
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
