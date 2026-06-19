@@ -557,7 +557,7 @@ function Students() {
           {items.length === 0 && <EmptyState icon={Users} text="Chưa có sinh viên trong danh sách." />}
           {items.map((student, index) => (
             <div className="student-row" key={student.id}>
-              <div className="student-avatar">{student.full_name?.charAt(0) || 'S'}</div>
+              <StudentPhoto student={student} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-extrabold text-slate-900">{student.full_name}</p>
                 <p className="text-sm text-slate-500">{student.student_code}</p>
@@ -628,14 +628,17 @@ function InstructorDashboard() {
       student.full_name,
       student.class_name,
     ].some(value => String(value || '').toLocaleLowerCase('vi').includes(normalizedSearch));
-    const isPresent = Boolean(student.attendance);
+    const isPresent = student.attendance?.status === 'present';
+    const isPending = student.attendance?.status === 'pending_face';
     const matchesStatus = statusFilter === 'all'
       || (statusFilter === 'present' && isPresent)
-      || (statusFilter === 'absent' && !isPresent);
+      || (statusFilter === 'pending' && isPending)
+      || (statusFilter === 'absent' && !isPresent && !isPending);
     return matchesSearch && matchesStatus;
   });
-  const presentCount = attendances.length;
-  const absentCount = Math.max(students.length - presentCount, 0);
+  const presentCount = attendances.filter(attendance => attendance.status === 'present').length;
+  const pendingFaceCount = attendances.filter(attendance => attendance.status === 'pending_face').length;
+  const absentCount = Math.max(students.length - presentCount - pendingFaceCount, 0);
   const attendanceRate = students.length ? Math.round((presentCount / students.length) * 100) : 0;
 
   function isLate(attendance) {
@@ -684,6 +687,26 @@ function InstructorDashboard() {
     }
   }
 
+  async function scanFaceAttendances() {
+    if (!selectedSessionId) {
+      setMessage('❌ Hãy chọn một buổi học trước.');
+      return;
+    }
+    setBusyStudentId('face-scan');
+    setMessage('Đang quét các lượt điểm danh khuôn mặt...');
+    try {
+      const result = await api(`/instructor/face-attendance/scan?session_id=${selectedSessionId}`, {
+        method: 'POST',
+      });
+      await Promise.all([loadAttendances(), loadOverview()]);
+      setMessage(`✅ ${result.message}`);
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    } finally {
+      setBusyStudentId(null);
+    }
+  }
+
   function exportCsv() {
     if (!selectedSession) {
       setMessage('❌ Chưa có buổi học để xuất báo cáo.');
@@ -696,7 +719,11 @@ function InstructorDashboard() {
         student.student_code,
         student.full_name,
         student.class_name,
-        student.attendance ? (isLate(student.attendance) ? 'Đi muộn' : 'Có mặt') : 'Vắng',
+        student.attendance
+          ? student.attendance.status === 'pending_face'
+            ? 'Chờ xác nhận khuôn mặt'
+            : isLate(student.attendance) ? 'Đi muộn' : 'Có mặt'
+          : 'Vắng',
         student.attendance?.method || '',
         student.attendance?.checked_at
           ? new Date(student.attendance.checked_at).toLocaleString('vi-VN')
@@ -718,7 +745,7 @@ function InstructorDashboard() {
         <TeacherStat icon={Users} label="Tổng sinh viên" value={students.length} tone="red" />
         <TeacherStat icon={CalendarPlus} label="Buổi thực hành" value={sessions.length} tone="cyan" />
         <TeacherStat icon={UserCheck} label="Có mặt" value={presentCount} tone="green" />
-        <TeacherStat icon={Activity} label="Tỷ lệ tham dự" value={`${attendanceRate}%`} tone="amber" />
+        <TeacherStat icon={ScanFace} label="Chờ quét khuôn mặt" value={pendingFaceCount} tone="amber" />
       </section>
 
       <section className="card">
@@ -733,6 +760,15 @@ function InstructorDashboard() {
           </div>
           <button type="button" className="btn-secondary" onClick={() => loadAttendances()}>
             <RefreshCw size={17} />Làm mới
+          </button>
+          <button
+            type="button"
+            className="face-scan-button"
+            onClick={scanFaceAttendances}
+            disabled={busyStudentId === 'face-scan' || !selectedSessionId}
+          >
+            <ScanFace size={18} />
+            {busyStudentId === 'face-scan' ? 'Đang quét...' : `Quét khuôn mặt (${pendingFaceCount})`}
           </button>
           <button type="button" className="btn" onClick={exportCsv}>
             <Download size={17} />Xuất CSV
@@ -773,6 +809,7 @@ function InstructorDashboard() {
             {[
               ['all', `Tất cả ${students.length}`],
               ['present', `Có mặt ${presentCount}`],
+              ['pending', `Chờ xác nhận ${pendingFaceCount}`],
               ['absent', `Vắng ${absentCount}`],
             ].map(([value, label]) => (
               <button
@@ -794,20 +831,21 @@ function InstructorDashboard() {
             <EmptyState icon={Users} text="Không tìm thấy sinh viên phù hợp." />
           )}
           {filteredRoster.map(student => {
-            const present = Boolean(student.attendance);
+            const present = student.attendance?.status === 'present';
+            const pendingFace = student.attendance?.status === 'pending_face';
             const late = isLate(student.attendance);
             return (
               <article className="teacher-student-row" key={student.id}>
-                <div className="student-avatar">{student.full_name?.charAt(0) || 'S'}</div>
+                <StudentPhoto student={student} />
                 <div className="teacher-student-info">
                   <p>{student.full_name}</p>
                   <span>{student.student_code} · {student.class_name}</span>
                 </div>
                 <div className="teacher-attendance-detail">
-                  <span className={`attendance-status ${present ? (late ? 'attendance-late' : 'attendance-present') : 'attendance-absent'}`}>
-                    {present ? (late ? 'Đi muộn' : 'Có mặt') : 'Vắng'}
+                  <span className={`attendance-status ${pendingFace ? 'attendance-pending' : present ? (late ? 'attendance-late' : 'attendance-present') : 'attendance-absent'}`}>
+                    {pendingFace ? 'Chờ xác nhận mặt' : present ? (late ? 'Đi muộn' : 'Có mặt') : 'Vắng'}
                   </span>
-                  {present && (
+                  {student.attendance && (
                     <small>
                       {student.attendance.method === 'MANUAL' ? 'Giảng viên ghi nhận' : student.attendance.method}
                       {' · '}
@@ -817,12 +855,12 @@ function InstructorDashboard() {
                 </div>
                 <button
                   type="button"
-                  className={present ? 'attendance-action attendance-remove' : 'attendance-action attendance-add'}
+                  className={student.attendance ? 'attendance-action attendance-remove' : 'attendance-action attendance-add'}
                   disabled={busyStudentId === student.id || !selectedSessionId}
-                  onClick={() => present ? removeAttendance(student) : markPresent(student.id)}
+                  onClick={() => student.attendance ? removeAttendance(student) : markPresent(student.id)}
                 >
-                  {present ? <UserX size={17} /> : <UserCheck size={17} />}
-                  {busyStudentId === student.id ? 'Đang xử lý...' : present ? 'Hủy điểm danh' : 'Đánh dấu có mặt'}
+                  {student.attendance ? <UserX size={17} /> : <UserCheck size={17} />}
+                  {busyStudentId === student.id ? 'Đang xử lý...' : student.attendance ? 'Hủy lượt ghi nhận' : 'Đánh dấu có mặt'}
                 </button>
               </article>
             );
@@ -843,6 +881,19 @@ function TeacherStat({ icon: Icon, label, value, tone }) {
       </div>
     </div>
   );
+}
+
+function StudentPhoto({ student }) {
+  if (student.face_image_path) {
+    return (
+      <img
+        className="student-photo"
+        src={student.face_image_path}
+        alt={`Ảnh ${student.full_name}`}
+      />
+    );
+  }
+  return <div className="student-avatar">{student.full_name?.charAt(0) || 'S'}</div>;
 }
 
 function Sessions() {
@@ -979,23 +1030,25 @@ function CheckIn({ currentUser }) {
             <small>Điểm danh bằng mã của buổi học</small>
           </div>
         </button>
-        <button
-          type="button"
-          className={`checkin-method ${method === 'face' ? 'checkin-method-active' : ''}`}
-          onClick={() => switchMethod('face')}
-          disabled={switchingCamera}
-        >
-          <span><ScanFace size={21} /></span>
-          <div>
-            <strong>Quét khuôn mặt</strong>
-            <small>Chụp và gửi ảnh xác thực</small>
-          </div>
-        </button>
+        {currentUser.role === 'student' && (
+          <button
+            type="button"
+            className={`checkin-method ${method === 'face' ? 'checkin-method-active' : ''}`}
+            onClick={() => switchMethod('face')}
+            disabled={switchingCamera}
+          >
+            <span><ScanFace size={21} /></span>
+            <div>
+              <strong>Quét khuôn mặt</strong>
+              <small>Chụp và gửi ảnh xác thực</small>
+            </div>
+          </button>
+        )}
       </div>
       {switchingCamera && <div className="camera-switching"><Activity size={20} />Đang chuyển camera...</div>}
       {method === 'qr'
         ? <QrCheckIn registerCameraStop={registerCameraStop} currentUser={currentUser} />
-        : <FaceDetect registerCameraStop={registerCameraStop} />}
+        : <FaceDetect registerCameraStop={registerCameraStop} currentUser={currentUser} />}
     </div>
   );
 }
@@ -1225,7 +1278,7 @@ function QrCheckIn({ registerCameraStop, currentUser }) {
   );
 }
 
-function FaceDetect({ registerCameraStop }) {
+function FaceDetect({ registerCameraStop, currentUser }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -1241,6 +1294,17 @@ function FaceDetect({ registerCameraStop }) {
   const [cameraFailed, setCameraFailed] = useState(false);
   const [cameraAttempt, setCameraAttempt] = useState(0);
   const [capturing, setCapturing] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [selectedSessionId, setSelectedSessionId] = useState('');
+
+  useEffect(() => {
+    api('/sessions')
+      .then(rows => {
+        setSessions(rows);
+        setSelectedSessionId(String(rows[0]?.id || ''));
+      })
+      .catch(error => setMessage(`❌ ${error.message}`));
+  }, []);
 
   const stopFaceCamera = useCallback(async () => {
     if (stopPromiseRef.current) return stopPromiseRef.current;
@@ -1357,19 +1421,24 @@ function FaceDetect({ registerCameraStop }) {
       setMessage('❌ Hãy chụp khuôn mặt trước khi gửi.');
       return;
     }
+    if (!selectedSessionId) {
+      setMessage('❌ Hãy chọn buổi học trước khi gửi.');
+      return;
+    }
     setLoading(true);
     setMessage('Đang gửi ảnh...');
     try {
       const formData = new FormData();
       formData.append('file', photo);
-      const response = await fetch(`${API}/face-detect`, {
+      formData.append('session_id', selectedSessionId);
+      const response = await fetch(`${API}/face-check-in`, {
         method: 'POST',
         headers: authHeaders(),
         body: formData,
       });
-      if (!response.ok) throw new Error('Không thể gửi ảnh');
       const data = await response.json();
-      setMessage(data.has_face ? '✅ Camera phát hiện khuôn mặt' : '❌ Chưa thấy mặt rõ');
+      if (!response.ok) throw new Error(data.detail || 'Không thể gửi ảnh');
+      setMessage(`✅ ${data.message}`);
     } catch (error) {
       setMessage(`❌ ${error.message}`);
     } finally {
@@ -1411,6 +1480,22 @@ function FaceDetect({ registerCameraStop }) {
         </div>
         <canvas ref={canvasRef} className="hidden" />
 
+        <label className="field-label mt-5 block">
+          Buổi học cần điểm danh
+          <select
+            className="input mt-2"
+            value={selectedSessionId}
+            onChange={event => setSelectedSessionId(event.target.value)}
+          >
+            {sessions.length === 0 && <option value="">Chưa có buổi học</option>}
+            {sessions.map(session => (
+              <option key={session.id} value={session.id}>
+                {session.title} — {session.room}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <div className="mt-5">
           <button type="button" className="btn w-full" onClick={capture} disabled={!cameraReady || capturing}>
             <Camera size={18} />{capturing ? 'Đang ghi nhận...' : 'Chụp khuôn mặt'}
@@ -1421,6 +1506,10 @@ function FaceDetect({ registerCameraStop }) {
       <div className="space-y-5">
         <section className="card">
           <SectionHeading icon={Sparkles} kicker="Ảnh xác thực" title="Bản xem trước" />
+          <p className="mt-3 text-sm leading-relaxed text-slate-500">
+            Sinh viên: <strong className="text-slate-800">{currentUser.full_name}</strong>. Sau khi gửi,
+            lượt điểm danh sẽ chờ giảng viên quét xác nhận.
+          </p>
           {preview ? (
             <img src={preview} alt="Ảnh khuôn mặt đã chụp" className="preview-image mt-5" />
           ) : (
@@ -1429,8 +1518,8 @@ function FaceDetect({ registerCameraStop }) {
               <p>Ảnh vừa chụp sẽ xuất hiện tại đây</p>
             </div>
           )}
-          <button type="button" className="btn mt-4 w-full" onClick={upload} disabled={!photo || loading}>
-            <Send size={18} />{loading ? 'Đang gửi...' : 'Gửi xác thực'}
+          <button type="button" className="btn mt-4 w-full" onClick={upload} disabled={!photo || loading || !selectedSessionId}>
+            <Send size={18} />{loading ? 'Đang gửi...' : 'Gửi điểm danh khuôn mặt'}
           </button>
           {message && <div className="result-message mt-4">{message}</div>}
         </section>
@@ -1439,7 +1528,7 @@ function FaceDetect({ registerCameraStop }) {
           <ShieldCheck size={25} />
           <div>
             <p className="font-extrabold">Dữ liệu được bảo vệ</p>
-            <p className="mt-1 text-sm text-slate-600">Ảnh chỉ được sử dụng để kiểm tra khuôn mặt trong phiên hiện tại.</p>
+            <p className="mt-1 text-sm text-slate-600">Ảnh khuôn mặt thu nhỏ được lưu trong hồ sơ để giảng viên đối chiếu điểm danh.</p>
           </div>
         </section>
       </div>

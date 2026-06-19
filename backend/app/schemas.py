@@ -12,6 +12,7 @@ class StudentOut(BaseModel):
     student_code: str
     full_name: str
     class_name: str
+    face_image_path: str | None = None
     class Config:
         from_attributes = True
 

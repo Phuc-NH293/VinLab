@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -17,7 +17,7 @@ from .schemas import (
     ManualAttendanceRequest,
     AttendanceOut,
 )
-from .cv_service import detect_face
+from .cv_service import create_face_thumbnail
 from .auth import (
     create_access_token,
     get_current_user,
@@ -188,13 +188,69 @@ def check_in(
     db.refresh(attendance)
     return attendance
 
-@app.post("/api/face-detect")
-async def face_detect(
+@app.post("/api/face-check-in")
+async def face_check_in(
     file: UploadFile = File(...),
-    _: User = Depends(get_current_user),
+    session_id: int = Form(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("student")),
 ):
     image_bytes = await file.read()
-    return {"has_face": detect_face(image_bytes)}
+    thumbnail = create_face_thumbnail(image_bytes)
+    if not thumbnail:
+        raise HTTPException(400, "Chưa phát hiện khuôn mặt rõ trong ảnh")
+    if not current_user.student:
+        raise HTTPException(400, "Tài khoản sinh viên chưa liên kết hồ sơ")
+    session = db.query(LabSession).filter(LabSession.id == session_id).first()
+    if not session:
+        raise HTTPException(404, "Không tìm thấy buổi học")
+    now = datetime.utcnow()
+    if not (session.start_time <= now <= session.end_time):
+        raise HTTPException(400, "Ngoài thời gian điểm danh")
+
+    current_user.student.face_image_path = thumbnail
+    attendance = Attendance(
+        student_id=current_user.student.id,
+        session_id=session.id,
+        method="FACE",
+        status="pending_face",
+    )
+    db.add(attendance)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Bạn đã gửi điểm danh cho buổi học này")
+    return {
+        "ok": True,
+        "status": "pending_face",
+        "message": "Đã gửi khuôn mặt, đang chờ giảng viên xác nhận",
+        "face_image_path": thumbnail,
+    }
+
+
+@app.post("/api/instructor/face-attendance/scan")
+def instructor_scan_face_attendance(
+    session_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_role("teacher")),
+):
+    pending = (
+        db.query(Attendance)
+        .filter(
+            Attendance.session_id == session_id,
+            Attendance.method == "FACE",
+            Attendance.status == "pending_face",
+        )
+        .all()
+    )
+    for attendance in pending:
+        attendance.status = "present"
+    db.commit()
+    return {
+        "confirmed": len(pending),
+        "message": f"Đã xác nhận {len(pending)} sinh viên điểm danh khuôn mặt",
+    }
 
 @app.post("/api/instructor/attendance", response_model=AttendanceOut)
 def instructor_mark_attendance(
@@ -258,6 +314,7 @@ def session_attendances(
             "student_code": s.student_code,
             "full_name": s.full_name,
             "class_name": s.class_name,
+            "face_image_path": s.face_image_path,
             "method": a.method,
             "status": a.status,
             "checked_at": a.checked_at,
