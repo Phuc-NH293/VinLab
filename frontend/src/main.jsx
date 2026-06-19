@@ -44,7 +44,7 @@ import {
 } from './lib/api';
 
 const navigation = [
-  { id: 'checkin', label: 'Điểm danh', description: 'Mã QR & khuôn mặt', icon: QrCode, roles: ['student', 'teacher'] },
+  { id: 'checkin', label: 'Điểm danh', description: 'Mã QR & khuôn mặt', icon: QrCode, roles: ['student'] },
   { id: 'studentPortal', label: 'Cổng sinh viên', description: 'Lịch, lịch sử, xin nghỉ', icon: CalendarPlus, roles: ['student'] },
   { id: 'sessions', label: 'Buổi thực hành', description: 'Lịch & mã QR', icon: CalendarPlus, roles: ['teacher'] },
   { id: 'students', label: 'Sinh viên', description: 'Quản lý lớp', icon: Users, roles: ['teacher'] },
