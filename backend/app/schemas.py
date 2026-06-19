@@ -31,6 +31,10 @@ class CheckInRequest(BaseModel):
     student_code: str
     qr_token: str
 
+class ManualAttendanceRequest(BaseModel):
+    student_id: int
+    session_id: int
+
 class AttendanceOut(BaseModel):
     id: int
     student_id: int

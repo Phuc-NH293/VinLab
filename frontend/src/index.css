@@ -245,6 +245,131 @@ button {
   @apply shrink-0 rounded-full px-3 py-1 text-xs font-extrabold;
 }
 
+.teacher-stats {
+  @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-4;
+}
+
+.teacher-stat {
+  @apply flex items-center gap-3 rounded-[1.5rem] border border-white bg-white p-4;
+  box-shadow: 0 14px 40px rgba(44, 54, 83, 0.07);
+}
+
+.teacher-stat > span {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl;
+}
+
+.teacher-stat p {
+  @apply text-xs font-bold text-slate-500;
+}
+
+.teacher-stat strong {
+  @apply mt-0.5 block text-2xl font-black text-slate-950;
+}
+
+.teacher-stat-red > span {
+  @apply bg-red-50 text-red-600;
+}
+
+.teacher-stat-cyan > span {
+  @apply bg-cyan-50 text-cyan-700;
+}
+
+.teacher-stat-green > span {
+  @apply bg-emerald-50 text-emerald-600;
+}
+
+.teacher-stat-amber > span {
+  @apply bg-amber-50 text-amber-600;
+}
+
+.teacher-toolbar {
+  @apply flex flex-wrap items-center gap-3;
+}
+
+.teacher-controls {
+  @apply mt-6 grid gap-4 lg:grid-cols-2;
+}
+
+.search-field {
+  @apply flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 text-slate-400 transition focus-within:border-red-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-red-100;
+}
+
+.search-field input {
+  @apply min-w-0 flex-1 bg-transparent py-3 text-sm font-semibold normal-case tracking-normal text-slate-900 outline-none placeholder:font-medium placeholder:text-slate-400;
+}
+
+.teacher-summary {
+  @apply mt-5 flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 lg:flex-row lg:items-center lg:justify-between;
+}
+
+.teacher-filter-tabs {
+  @apply flex flex-wrap gap-2;
+}
+
+.teacher-filter-tabs button {
+  @apply rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-slate-500 transition hover:text-red-600;
+}
+
+.teacher-filter-tabs .teacher-filter-active {
+  @apply bg-red-600 text-white shadow-lg shadow-red-200 hover:text-white;
+}
+
+.teacher-roster {
+  @apply mt-4 space-y-2;
+}
+
+.teacher-student-row {
+  @apply grid items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition hover:border-red-100 hover:bg-red-50/20 md:grid-cols-[auto_minmax(170px,1fr)_minmax(150px,0.8fr)_auto];
+}
+
+.teacher-student-info {
+  @apply min-w-0;
+}
+
+.teacher-student-info p {
+  @apply truncate font-extrabold text-slate-900;
+}
+
+.teacher-student-info span {
+  @apply text-sm text-slate-500;
+}
+
+.teacher-attendance-detail {
+  @apply flex min-w-0 flex-col items-start gap-1;
+}
+
+.teacher-attendance-detail small {
+  @apply truncate text-xs font-semibold text-slate-400;
+}
+
+.attendance-status {
+  @apply inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider;
+}
+
+.attendance-present {
+  @apply bg-emerald-50 text-emerald-700;
+}
+
+.attendance-late {
+  @apply bg-amber-50 text-amber-700;
+}
+
+.attendance-absent {
+  @apply bg-slate-100 text-slate-500;
+}
+
+.attendance-action {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold transition disabled:cursor-wait disabled:opacity-60;
+}
+
+.attendance-add {
+  @apply bg-emerald-50 text-emerald-700 hover:bg-emerald-100;
+}
+
+.attendance-remove {
+  @apply bg-red-50 text-red-600 hover:bg-red-100;
+}
+
 .chip-0 {
   @apply bg-red-50 text-red-600;
 }
@@ -494,7 +619,7 @@ button {
 }
 
 .mobile-nav {
-  @apply fixed bottom-3 left-3 right-3 z-50 grid grid-cols-3 rounded-[1.5rem] border border-white/80 bg-white/90 p-2 backdrop-blur-xl;
+  @apply fixed bottom-3 left-3 right-3 z-50 grid grid-cols-4 rounded-[1.5rem] border border-white/80 bg-white/90 p-2 backdrop-blur-xl;
   box-shadow: 0 18px 50px rgba(30, 41, 59, 0.2);
 }
 
@@ -540,6 +665,19 @@ button {
 
   .face-guide {
     @apply h-[74%] w-[64%];
+  }
+
+  .teacher-student-row {
+    @apply grid-cols-[auto_minmax(0,1fr)];
+  }
+
+  .teacher-attendance-detail,
+  .attendance-action {
+    @apply col-span-2;
+  }
+
+  .teacher-attendance-detail {
+    @apply pl-14;
   }
 }
 

@@ -6,7 +6,15 @@ from datetime import datetime
 import secrets
 from .database import Base, engine, get_db
 from .models import Student, LabSession, Attendance
-from .schemas import StudentCreate, StudentOut, SessionCreate, SessionOut, CheckInRequest, AttendanceOut
+from .schemas import (
+    StudentCreate,
+    StudentOut,
+    SessionCreate,
+    SessionOut,
+    CheckInRequest,
+    ManualAttendanceRequest,
+    AttendanceOut,
+)
 from .cv_service import detect_face
 
 Base.metadata.create_all(bind=engine)
@@ -78,6 +86,39 @@ async def face_detect(file: UploadFile = File(...)):
     image_bytes = await file.read()
     return {"has_face": detect_face(image_bytes)}
 
+@app.post("/api/instructor/attendance", response_model=AttendanceOut)
+def instructor_mark_attendance(payload: ManualAttendanceRequest, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == payload.student_id).first()
+    if not student:
+        raise HTTPException(404, "Không tìm thấy sinh viên")
+    session = db.query(LabSession).filter(LabSession.id == payload.session_id).first()
+    if not session:
+        raise HTTPException(404, "Không tìm thấy buổi học")
+
+    attendance = Attendance(
+        student_id=student.id,
+        session_id=session.id,
+        method="MANUAL",
+        status="present",
+    )
+    db.add(attendance)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Sinh viên đã được ghi nhận có mặt")
+    db.refresh(attendance)
+    return attendance
+
+@app.delete("/api/instructor/attendance/{attendance_id}")
+def instructor_remove_attendance(attendance_id: int, db: Session = Depends(get_db)):
+    attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+    if not attendance:
+        raise HTTPException(404, "Không tìm thấy lượt điểm danh")
+    db.delete(attendance)
+    db.commit()
+    return {"ok": True}
+
 @app.get("/api/sessions/{session_id}/attendances")
 def session_attendances(session_id: int, db: Session = Depends(get_db)):
     rows = (
@@ -90,6 +131,8 @@ def session_attendances(session_id: int, db: Session = Depends(get_db)):
     return [
         {
             "id": a.id,
+            "student_id": a.student_id,
+            "session_id": a.session_id,
             "student_code": s.student_code,
             "full_name": s.full_name,
             "class_name": s.class_name,

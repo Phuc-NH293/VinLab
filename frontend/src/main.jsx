@@ -7,13 +7,20 @@ import {
   Camera,
   CheckCircle2,
   Clock3,
+  Download,
+  GraduationCap,
+  LayoutDashboard,
   MapPin,
   QrCode,
+  RefreshCw,
   ScanFace,
+  Search,
   Send,
   ShieldCheck,
   Sparkles,
+  UserCheck,
   UserPlus,
+  UserX,
   Users,
   Wifi,
 } from 'lucide-react';
@@ -26,6 +33,7 @@ const navigation = [
   { id: 'checkin', label: 'Điểm danh', description: 'Mã QR & khuôn mặt', icon: QrCode },
   { id: 'sessions', label: 'Buổi thực hành', description: 'Lịch & mã QR', icon: CalendarPlus },
   { id: 'students', label: 'Sinh viên', description: 'Quản lý lớp', icon: Users },
+  { id: 'instructor', label: 'Giảng viên', description: 'Theo dõi lớp học', icon: GraduationCap },
 ];
 
 const pageMeta = {
@@ -46,6 +54,12 @@ const pageMeta = {
     title: 'Danh sách sinh viên',
     description: 'Quản lý thông tin lớp học trong một không gian.',
     icon: Users,
+  },
+  instructor: {
+    eyebrow: 'Trung tâm điều hành',
+    title: 'Bảng điều khiển giảng viên',
+    description: 'Theo dõi chuyên cần, xử lý điểm danh và xuất báo cáo lớp học.',
+    icon: LayoutDashboard,
   },
 };
 
@@ -253,6 +267,7 @@ function App() {
             )}
             {tab === 'sessions' && <Sessions />}
             {tab === 'students' && <Students />}
+            {tab === 'instructor' && <InstructorDashboard />}
           </div>
         </main>
       </div>
@@ -391,6 +406,280 @@ function Students() {
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+
+function InstructorDashboard() {
+  const [students, setStudents] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [attendances, setAttendances] = useState([]);
+  const [selectedSessionId, setSelectedSessionId] = useState('');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [busyStudentId, setBusyStudentId] = useState(null);
+  const [message, setMessage] = useState('');
+
+  async function loadOverview() {
+    try {
+      const [studentRows, sessionRows] = await Promise.all([
+        api('/students'),
+        api('/sessions'),
+      ]);
+      setStudents(studentRows);
+      setSessions(sessionRows);
+      setSelectedSessionId(current => current || String(sessionRows[0]?.id || ''));
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  async function loadAttendances(sessionId = selectedSessionId) {
+    if (!sessionId) {
+      setAttendances([]);
+      return;
+    }
+    try {
+      setAttendances(await api(`/sessions/${sessionId}/attendances`));
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  useEffect(() => {
+    loadOverview();
+  }, []);
+
+  useEffect(() => {
+    loadAttendances(selectedSessionId);
+  }, [selectedSessionId]);
+
+  const selectedSession = sessions.find(session => String(session.id) === String(selectedSessionId));
+  const attendanceByStudent = new Map(attendances.map(attendance => [attendance.student_id, attendance]));
+  const roster = students.map(student => ({
+    ...student,
+    attendance: attendanceByStudent.get(student.id) || null,
+  }));
+  const normalizedSearch = search.trim().toLocaleLowerCase('vi');
+  const filteredRoster = roster.filter(student => {
+    const matchesSearch = !normalizedSearch || [
+      student.student_code,
+      student.full_name,
+      student.class_name,
+    ].some(value => String(value || '').toLocaleLowerCase('vi').includes(normalizedSearch));
+    const isPresent = Boolean(student.attendance);
+    const matchesStatus = statusFilter === 'all'
+      || (statusFilter === 'present' && isPresent)
+      || (statusFilter === 'absent' && !isPresent);
+    return matchesSearch && matchesStatus;
+  });
+  const presentCount = attendances.length;
+  const absentCount = Math.max(students.length - presentCount, 0);
+  const attendanceRate = students.length ? Math.round((presentCount / students.length) * 100) : 0;
+
+  function isLate(attendance) {
+    if (!attendance || !selectedSession) return false;
+    const checkedAt = new Date(attendance.checked_at).getTime();
+    const startAt = new Date(selectedSession.start_time).getTime();
+    return checkedAt > startAt + 15 * 60 * 1000;
+  }
+
+  async function markPresent(studentId) {
+    if (!selectedSessionId) {
+      setMessage('❌ Hãy chọn một buổi học trước.');
+      return;
+    }
+    setBusyStudentId(studentId);
+    setMessage('');
+    try {
+      await api('/instructor/attendance', {
+        method: 'POST',
+        body: JSON.stringify({
+          student_id: studentId,
+          session_id: Number(selectedSessionId),
+        }),
+      });
+      await loadAttendances();
+      setMessage('✅ Đã ghi nhận sinh viên có mặt.');
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    } finally {
+      setBusyStudentId(null);
+    }
+  }
+
+  async function removeAttendance(student) {
+    if (!student.attendance) return;
+    setBusyStudentId(student.id);
+    setMessage('');
+    try {
+      await api(`/instructor/attendance/${student.attendance.id}`, { method: 'DELETE' });
+      await loadAttendances();
+      setMessage('✅ Đã hủy lượt điểm danh.');
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    } finally {
+      setBusyStudentId(null);
+    }
+  }
+
+  function exportCsv() {
+    if (!selectedSession) {
+      setMessage('❌ Chưa có buổi học để xuất báo cáo.');
+      return;
+    }
+    const escapeCell = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
+    const rows = [
+      ['Mã sinh viên', 'Họ và tên', 'Lớp', 'Trạng thái', 'Phương thức', 'Thời gian'],
+      ...roster.map(student => [
+        student.student_code,
+        student.full_name,
+        student.class_name,
+        student.attendance ? (isLate(student.attendance) ? 'Đi muộn' : 'Có mặt') : 'Vắng',
+        student.attendance?.method || '',
+        student.attendance?.checked_at
+          ? new Date(student.attendance.checked_at).toLocaleString('vi-VN')
+          : '',
+      ]),
+    ];
+    const csv = `\uFEFF${rows.map(row => row.map(escapeCell).join(',')).join('\n')}`;
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `diem-danh-${selectedSession.title.replaceAll(/\s+/g, '-').toLowerCase()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="space-y-5">
+      <section className="teacher-stats">
+        <TeacherStat icon={Users} label="Tổng sinh viên" value={students.length} tone="red" />
+        <TeacherStat icon={CalendarPlus} label="Buổi thực hành" value={sessions.length} tone="cyan" />
+        <TeacherStat icon={UserCheck} label="Có mặt" value={presentCount} tone="green" />
+        <TeacherStat icon={Activity} label="Tỷ lệ tham dự" value={`${attendanceRate}%`} tone="amber" />
+      </section>
+
+      <section className="card">
+        <div className="teacher-toolbar">
+          <div className="min-w-0 flex-1">
+            <SectionHeading
+              icon={GraduationCap}
+              kicker="Quản lý chuyên cần"
+              title="Danh sách điểm danh"
+              description="Chọn buổi học để theo dõi và điều chỉnh trạng thái sinh viên."
+            />
+          </div>
+          <button type="button" className="btn-secondary" onClick={() => loadAttendances()}>
+            <RefreshCw size={17} />Làm mới
+          </button>
+          <button type="button" className="btn" onClick={exportCsv}>
+            <Download size={17} />Xuất CSV
+          </button>
+        </div>
+
+        <div className="teacher-controls">
+          <label className="field-label">
+            Buổi học
+            <select
+              className="input mt-2"
+              value={selectedSessionId}
+              onChange={event => setSelectedSessionId(event.target.value)}
+            >
+              {sessions.length === 0 && <option value="">Chưa có buổi học</option>}
+              {sessions.map(session => (
+                <option key={session.id} value={session.id}>{session.title} — {session.room}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field-label">
+            Tìm sinh viên
+            <span className="search-field mt-2">
+              <Search size={17} />
+              <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Mã, tên hoặc lớp..." />
+            </span>
+          </label>
+        </div>
+
+        <div className="teacher-summary">
+          <div>
+            <p className="font-black text-slate-950">{selectedSession?.title || 'Chưa chọn buổi học'}</p>
+            <p className="mt-1 text-sm text-slate-500">
+              {selectedSession ? `${selectedSession.room} · ${new Date(selectedSession.start_time).toLocaleString('vi-VN')}` : 'Tạo buổi thực hành để bắt đầu quản lý.'}
+            </p>
+          </div>
+          <div className="teacher-filter-tabs">
+            {[
+              ['all', `Tất cả ${students.length}`],
+              ['present', `Có mặt ${presentCount}`],
+              ['absent', `Vắng ${absentCount}`],
+            ].map(([value, label]) => (
+              <button
+                type="button"
+                key={value}
+                onClick={() => setStatusFilter(value)}
+                className={statusFilter === value ? 'teacher-filter-active' : ''}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {message && <div className="result-message mt-4">{message}</div>}
+
+        <div className="teacher-roster">
+          {filteredRoster.length === 0 && (
+            <EmptyState icon={Users} text="Không tìm thấy sinh viên phù hợp." />
+          )}
+          {filteredRoster.map(student => {
+            const present = Boolean(student.attendance);
+            const late = isLate(student.attendance);
+            return (
+              <article className="teacher-student-row" key={student.id}>
+                <div className="student-avatar">{student.full_name?.charAt(0) || 'S'}</div>
+                <div className="teacher-student-info">
+                  <p>{student.full_name}</p>
+                  <span>{student.student_code} · {student.class_name}</span>
+                </div>
+                <div className="teacher-attendance-detail">
+                  <span className={`attendance-status ${present ? (late ? 'attendance-late' : 'attendance-present') : 'attendance-absent'}`}>
+                    {present ? (late ? 'Đi muộn' : 'Có mặt') : 'Vắng'}
+                  </span>
+                  {present && (
+                    <small>
+                      {student.attendance.method === 'MANUAL' ? 'Giảng viên ghi nhận' : student.attendance.method}
+                      {' · '}
+                      {new Date(student.attendance.checked_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                    </small>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className={present ? 'attendance-action attendance-remove' : 'attendance-action attendance-add'}
+                  disabled={busyStudentId === student.id || !selectedSessionId}
+                  onClick={() => present ? removeAttendance(student) : markPresent(student.id)}
+                >
+                  {present ? <UserX size={17} /> : <UserCheck size={17} />}
+                  {busyStudentId === student.id ? 'Đang xử lý...' : present ? 'Hủy điểm danh' : 'Đánh dấu có mặt'}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function TeacherStat({ icon: Icon, label, value, tone }) {
+  return (
+    <div className={`teacher-stat teacher-stat-${tone}`}>
+      <span><Icon size={21} /></span>
+      <div>
+        <p>{label}</p>
+        <strong>{value}</strong>
+      </div>
     </div>
   );
 }
