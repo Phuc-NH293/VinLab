@@ -235,6 +235,9 @@ def instructor_scan_face_attendance(
     db: Session = Depends(get_db),
     _: User = Depends(require_role("teacher")),
 ):
+    session = db.query(LabSession).filter(LabSession.id == session_id).first()
+    if not session:
+        raise HTTPException(404, "Không tìm thấy buổi học")
     pending = (
         db.query(Attendance)
         .filter(
