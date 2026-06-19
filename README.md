@@ -44,6 +44,14 @@ Repository được kết nối với hai dự án Vercel:
 
 Mỗi lần đẩy code lên nhánh `main`, Vercel tự động build và cập nhật bản production.
 
+## Tài khoản thử nghiệm
+
+- Giảng viên: `gv001` / `VinLab@123`
+- Sinh viên: `sv001` / `VinLab@123`
+
+API sử dụng JWT với thời hạn phiên mặc định 8 giờ. Sinh viên chỉ được truy cập màn điểm danh
+và chỉ có thể điểm danh cho chính tài khoản của mình; giảng viên có quyền quản lý lớp học.
+
 ## Luồng demo
 1. Vào tab Sinh viên, thêm SV001.
 2. Vào tab Buổi lab, tạo buổi lab. App sinh QR.

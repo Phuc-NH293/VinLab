@@ -74,6 +74,10 @@ button {
   @apply flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700;
 }
 
+.logout-button {
+  @apply flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600;
+}
+
 .status-dot {
   @apply h-2 w-2 rounded-full bg-emerald-500;
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
@@ -214,6 +218,129 @@ button {
 
 .input {
   @apply w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-semibold normal-case tracking-normal text-slate-900 outline-none transition placeholder:font-medium placeholder:text-slate-400 hover:border-slate-300 focus:border-red-400 focus:bg-white focus:ring-4 focus:ring-red-100;
+}
+
+.input:disabled {
+  @apply cursor-not-allowed bg-slate-100 text-slate-500;
+}
+
+.auth-loading {
+  @apply flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-950 font-extrabold text-white;
+}
+
+.auth-loading svg {
+  animation: camera-spin 1s linear infinite;
+}
+
+.login-page {
+  @apply relative grid min-h-screen overflow-hidden bg-slate-50 lg:grid-cols-[1.05fr_0.95fr];
+}
+
+.login-ambient {
+  @apply pointer-events-none absolute rounded-full blur-3xl;
+}
+
+.login-ambient-one {
+  @apply -left-32 -top-32 h-96 w-96 bg-red-300/25;
+}
+
+.login-ambient-two {
+  @apply -bottom-40 right-0 h-[30rem] w-[30rem] bg-cyan-300/20;
+}
+
+.login-brand-panel {
+  @apply relative z-10 hidden min-h-screen flex-col overflow-hidden bg-gradient-to-br from-red-700 via-rose-600 to-orange-500 p-12 text-white lg:flex;
+}
+
+.login-brand-panel::before,
+.login-brand-panel::after {
+  content: "";
+  @apply absolute rounded-full border border-white/15;
+}
+
+.login-brand-panel::before {
+  @apply -right-28 top-16 h-96 w-96;
+}
+
+.login-brand-panel::after {
+  @apply -bottom-36 -left-28 h-[28rem] w-[28rem];
+}
+
+.login-brand-name {
+  @apply absolute left-[6.5rem] top-[3.3rem] text-xl font-black tracking-[0.15em];
+}
+
+.login-brand-content {
+  @apply relative z-10 my-auto max-w-xl;
+}
+
+.login-brand-content h1 {
+  @apply mt-5 text-5xl font-black leading-[1.08] tracking-tight;
+}
+
+.login-brand-content > p:last-child {
+  @apply mt-5 max-w-lg text-lg leading-relaxed text-white/75;
+}
+
+.login-features {
+  @apply relative z-10 flex flex-wrap gap-3;
+}
+
+.login-features span {
+  @apply flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-extrabold backdrop-blur;
+}
+
+.login-form-panel {
+  @apply relative z-10 flex min-h-screen items-center justify-center px-4 py-10 sm:px-8;
+}
+
+.login-card {
+  @apply w-full max-w-md rounded-[2rem] border border-white bg-white p-6 sm:p-8;
+  box-shadow: 0 28px 80px rgba(44, 54, 83, 0.14);
+}
+
+.login-card h2 {
+  @apply mt-2 text-3xl font-black tracking-tight text-slate-950;
+}
+
+.login-subtitle {
+  @apply mt-2 text-sm leading-relaxed text-slate-500;
+}
+
+.login-mobile-brand {
+  @apply mb-8 flex items-center gap-3 lg:hidden;
+}
+
+.login-mobile-brand strong {
+  @apply text-xl font-black tracking-[0.12em] text-slate-950;
+}
+
+.demo-accounts {
+  @apply mt-6 border-t border-slate-100 pt-5;
+}
+
+.demo-accounts > p {
+  @apply mb-3 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400;
+}
+
+.demo-accounts button {
+  @apply mb-2 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-left transition hover:border-red-100 hover:bg-red-50;
+}
+
+.demo-accounts button > svg {
+  @apply shrink-0 text-red-500;
+}
+
+.demo-accounts button span {
+  @apply min-w-0;
+}
+
+.demo-accounts strong {
+  @apply block text-sm font-extrabold text-slate-800;
+}
+
+.demo-accounts small {
+  @apply mt-0.5 block text-xs text-slate-500;
 }
 
 .btn {

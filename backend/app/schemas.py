@@ -5,11 +5,32 @@ class StudentCreate(BaseModel):
     student_code: str
     full_name: str
     class_name: str
+    password: str = "VinLab@123"
 
-class StudentOut(StudentCreate):
+class StudentOut(BaseModel):
     id: int
+    student_code: str
+    full_name: str
+    class_name: str
     class Config:
         from_attributes = True
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+    full_name: str
+    role: str
+    student_id: int | None = None
+    student_code: str | None = None
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut
 
 class SessionCreate(BaseModel):
     title: str

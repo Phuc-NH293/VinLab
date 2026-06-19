@@ -10,6 +10,8 @@ import {
   Download,
   GraduationCap,
   LayoutDashboard,
+  LogIn,
+  LogOut,
   MapPin,
   QrCode,
   RefreshCw,
@@ -27,7 +29,14 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { Html5Qrcode } from 'html5-qrcode';
 import './index.css';
-import { api, API } from './lib/api';
+import {
+  api,
+  API,
+  authHeaders,
+  clearSession,
+  getStoredUser,
+  setSession,
+} from './lib/api';
 
 const navigation = [
   { id: 'checkin', label: 'Điểm danh', description: 'Mã QR & khuôn mặt', icon: QrCode },
@@ -178,11 +187,56 @@ function BrandMark() {
 
 function App() {
   const [tab, setTab] = useState('checkin');
+  const [currentUser, setCurrentUser] = useState(() => getStoredUser());
+  const [checkingSession, setCheckingSession] = useState(Boolean(getStoredUser()));
   const [cameraPermissionReady, setCameraPermissionReady] = useState(
     () => localStorage.getItem('vinlab-camera-permission') === 'granted',
   );
+  const visibleNavigation = currentUser?.role === 'student'
+    ? navigation.filter(item => item.id === 'checkin')
+    : navigation;
   const meta = pageMeta[tab];
   const PageIcon = meta.icon;
+
+  useEffect(() => {
+    if (!currentUser) {
+      setCheckingSession(false);
+      return;
+    }
+    api('/auth/me')
+      .then(user => setCurrentUser(user))
+      .catch(() => {
+        clearSession();
+        setCurrentUser(null);
+      })
+      .finally(() => setCheckingSession(false));
+  }, []);
+
+  useEffect(() => {
+    function handleExpiredSession() {
+      setCurrentUser(null);
+      setTab('checkin');
+    }
+    window.addEventListener('vinlab-auth-expired', handleExpiredSession);
+    return () => window.removeEventListener('vinlab-auth-expired', handleExpiredSession);
+  }, []);
+
+  function handleLogout() {
+    clearSession();
+    setCurrentUser(null);
+    setTab('checkin');
+  }
+
+  if (checkingSession) {
+    return <div className="auth-loading"><Activity size={28} /><p>Đang kiểm tra phiên đăng nhập...</p></div>;
+  }
+
+  if (!currentUser) {
+    return <LoginScreen onLogin={user => {
+      setCurrentUser(user);
+      setTab(user.role === 'student' ? 'checkin' : 'instructor');
+    }} />;
+  }
 
   return (
     <div className="app-shell">
@@ -203,9 +257,12 @@ function App() {
           </div>
           <div className="status-pill">
             <span className="status-dot" />
-            <span className="hidden sm:inline">Hệ thống hoạt động tốt</span>
-            <span className="sm:hidden">Trực tuyến</span>
+            <span className="hidden sm:inline">{currentUser.full_name}</span>
+            <span className="sm:hidden">{currentUser.role === 'teacher' ? 'GV' : 'SV'}</span>
           </div>
+          <button type="button" className="logout-button" onClick={handleLogout} title="Đăng xuất">
+            <LogOut size={18} /><span className="hidden sm:inline">Đăng xuất</span>
+          </button>
         </div>
       </header>
 
@@ -216,7 +273,7 @@ function App() {
               Không gian làm việc
             </p>
             <nav className="space-y-2">
-              {navigation.map(({ id, label, description, icon: Icon }) => (
+              {visibleNavigation.map(({ id, label, description, icon: Icon }) => (
                 <button
                   key={id}
                   type="button"
@@ -262,18 +319,21 @@ function App() {
           <div className="mt-6">
             {tab === 'checkin' && (
               cameraPermissionReady
-                ? <CheckIn />
+                ? <CheckIn currentUser={currentUser} />
                 : <CameraPermission onGranted={() => setCameraPermissionReady(true)} />
             )}
-            {tab === 'sessions' && <Sessions />}
-            {tab === 'students' && <Students />}
-            {tab === 'instructor' && <InstructorDashboard />}
+            {currentUser.role === 'teacher' && tab === 'sessions' && <Sessions />}
+            {currentUser.role === 'teacher' && tab === 'students' && <Students />}
+            {currentUser.role === 'teacher' && tab === 'instructor' && <InstructorDashboard />}
           </div>
         </main>
       </div>
 
-      <nav className="mobile-nav lg:hidden">
-        {navigation.map(({ id, label, icon: Icon }) => (
+      <nav
+        className="mobile-nav lg:hidden"
+        style={{ gridTemplateColumns: `repeat(${visibleNavigation.length}, minmax(0, 1fr))` }}
+      >
+        {visibleNavigation.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -285,6 +345,104 @@ function App() {
           </button>
         ))}
       </nav>
+    </div>
+  );
+}
+
+function LoginScreen({ onLogin }) {
+  const [form, setForm] = useState({ username: '', password: '' });
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function login(event) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage('');
+    try {
+      const result = await api('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(form),
+      });
+      setSession(result.access_token, result.user);
+      onLogin(result.user);
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function useDemo(role) {
+    setForm({
+      username: role === 'teacher' ? 'gv001' : 'sv001',
+      password: 'VinLab@123',
+    });
+    setMessage('');
+  }
+
+  return (
+    <div className="login-page">
+      <div className="login-ambient login-ambient-one" />
+      <div className="login-ambient login-ambient-two" />
+      <section className="login-brand-panel">
+        <BrandMark />
+        <span className="login-brand-name">VINLAB</span>
+        <div className="login-brand-content">
+          <p className="eyebrow"><ShieldCheck size={15} />Hệ thống bảo mật JWT</p>
+          <h1>Điểm danh thông minh cho lớp học hiện đại.</h1>
+          <p>Phân quyền rõ ràng cho sinh viên và giảng viên, bảo vệ dữ liệu và thao tác quản lý.</p>
+        </div>
+        <div className="login-features">
+          <span><CheckCircle2 size={17} />Xác thực an toàn</span>
+          <span><ScanFace size={17} />Camera thông minh</span>
+          <span><LayoutDashboard size={17} />Quản lý chuyên cần</span>
+        </div>
+      </section>
+
+      <main className="login-form-panel">
+        <form className="login-card" onSubmit={login}>
+          <div className="login-mobile-brand"><BrandMark /><strong>VINLAB</strong></div>
+          <p className="section-kicker">Chào mừng trở lại</p>
+          <h2>Đăng nhập tài khoản</h2>
+          <p className="login-subtitle">Sử dụng tài khoản được cấp theo đúng vai trò của bạn.</p>
+
+          <label className="field-label mt-6 block">
+            Tên đăng nhập
+            <input
+              className="input mt-2"
+              value={form.username}
+              onChange={event => setForm({ ...form, username: event.target.value })}
+              placeholder="Nhập tên đăng nhập"
+              autoComplete="username"
+            />
+          </label>
+          <label className="field-label mt-4 block">
+            Mật khẩu
+            <input
+              className="input mt-2"
+              type="password"
+              value={form.password}
+              onChange={event => setForm({ ...form, password: event.target.value })}
+              placeholder="Nhập mật khẩu"
+              autoComplete="current-password"
+            />
+          </label>
+          <button className="btn mt-5 w-full" type="submit" disabled={loading || !form.username || !form.password}>
+            <LogIn size={18} />{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          </button>
+          {message && <div className="result-message mt-4">{message}</div>}
+
+          <div className="demo-accounts">
+            <p>Tài khoản thử nghiệm</p>
+            <button type="button" onClick={() => useDemo('teacher')}>
+              <GraduationCap size={18} /><span><strong>Giảng viên</strong><small>gv001 / VinLab@123</small></span>
+            </button>
+            <button type="button" onClick={() => useDemo('student')}>
+              <Users size={18} /><span><strong>Sinh viên</strong><small>sv001 / VinLab@123</small></span>
+            </button>
+          </div>
+        </form>
+      </main>
     </div>
   );
 }
@@ -359,6 +517,7 @@ function Students() {
     student_code: 'SV001',
     full_name: 'Nguyễn Văn A',
     class_name: 'AI20K',
+    password: 'VinLab@123',
   });
 
   const load = () => api('/students').then(setItems).catch(() => setItems([]));
@@ -383,6 +542,8 @@ function Students() {
           <label className="field-label">Mã sinh viên<input className="input mt-2" value={form.student_code} onChange={e => setForm({ ...form, student_code: e.target.value })} /></label>
           <label className="field-label">Họ và tên<input className="input mt-2" value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} /></label>
           <label className="field-label">Lớp học<input className="input mt-2" value={form.class_name} onChange={e => setForm({ ...form, class_name: e.target.value })} /></label>
+          <label className="field-label">Mật khẩu ban đầu<input className="input mt-2" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></label>
+          <p className="text-xs leading-relaxed text-slate-500">Tên đăng nhập của sinh viên chính là mã sinh viên viết thường.</p>
           <button className="btn w-full" type="submit"><UserPlus size={18} />Lưu sinh viên</button>
         </div>
       </form>
@@ -778,7 +939,7 @@ function Sessions() {
   );
 }
 
-function CheckIn() {
+function CheckIn({ currentUser }) {
   const [method, setMethod] = useState('qr');
   const [switchingCamera, setSwitchingCamera] = useState(false);
   const stopActiveCameraRef = useRef(async () => {});
@@ -833,14 +994,14 @@ function CheckIn() {
       </div>
       {switchingCamera && <div className="camera-switching"><Activity size={20} />Đang chuyển camera...</div>}
       {method === 'qr'
-        ? <QrCheckIn registerCameraStop={registerCameraStop} />
+        ? <QrCheckIn registerCameraStop={registerCameraStop} currentUser={currentUser} />
         : <FaceDetect registerCameraStop={registerCameraStop} />}
     </div>
   );
 }
 
-function QrCheckIn({ registerCameraStop }) {
-  const [studentCode, setStudentCode] = useState('SV001');
+function QrCheckIn({ registerCameraStop, currentUser }) {
+  const [studentCode, setStudentCode] = useState(currentUser.student_code || 'SV001');
   const [message, setMessage] = useState('');
   const [manual, setManual] = useState('');
   const [cameraStatus, setCameraStatus] = useState('Đang khởi động camera...');
@@ -1012,7 +1173,13 @@ function QrCheckIn({ registerCameraStop }) {
         />
         <label className="field-label mt-6 block">
           Mã sinh viên
-          <input className="input mt-2" value={studentCode} onChange={e => setStudentCode(e.target.value)} placeholder="Ví dụ: SV001" />
+          <input
+            className="input mt-2"
+            value={studentCode}
+            onChange={e => setStudentCode(e.target.value)}
+            placeholder="Ví dụ: SV001"
+            disabled={currentUser.role === 'student'}
+          />
         </label>
         <div className="scanner-shell mt-5">
           <div className={`scanner-status ${cameraReady ? '' : 'scanner-status-waiting'}`}>
@@ -1195,7 +1362,11 @@ function FaceDetect({ registerCameraStop }) {
     try {
       const formData = new FormData();
       formData.append('file', photo);
-      const response = await fetch(`${API}/face-detect`, { method: 'POST', body: formData });
+      const response = await fetch(`${API}/face-detect`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: formData,
+      });
       if (!response.ok) throw new Error('Không thể gửi ảnh');
       const data = await response.json();
       setMessage(data.has_face ? '✅ Camera phát hiện khuôn mặt' : '❌ Chưa thấy mặt rõ');
