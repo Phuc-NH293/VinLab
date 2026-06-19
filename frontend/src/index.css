@@ -511,6 +511,72 @@ button {
   box-shadow: 0 12px 25px rgba(124, 58, 237, 0.22);
 }
 
+.teacher-face-scanner {
+  @apply grid gap-5 overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-fuchsia-600 to-rose-500 p-5 text-white lg:grid-cols-[0.8fr_1.2fr] lg:p-7;
+  box-shadow: 0 24px 60px rgba(124, 58, 237, 0.24);
+}
+
+.teacher-face-copy {
+  @apply flex min-w-0 flex-col justify-center;
+}
+
+.teacher-face-copy .section-kicker {
+  @apply mt-4 text-violet-100;
+}
+
+.teacher-face-copy h3 {
+  @apply mt-1 text-2xl font-black tracking-tight sm:text-3xl;
+}
+
+.teacher-face-copy > p:not(.section-kicker) {
+  @apply mt-3 text-sm leading-relaxed text-white/75;
+}
+
+.teacher-face-icon {
+  @apply flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur;
+}
+
+.teacher-face-counts {
+  @apply mt-5 flex flex-wrap gap-2;
+}
+
+.teacher-face-counts span {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-extrabold;
+}
+
+.teacher-face-actions {
+  @apply mt-5 flex flex-wrap gap-3;
+}
+
+.teacher-face-actions .face-scan-button {
+  @apply bg-white text-violet-700;
+  box-shadow: 0 12px 30px rgba(30, 41, 59, 0.18);
+}
+
+.teacher-face-actions .btn-secondary {
+  @apply border-white/20 bg-white/10 text-white hover:border-white/30 hover:bg-white/20 hover:text-white;
+}
+
+.teacher-camera-view {
+  @apply relative aspect-video min-h-56 overflow-hidden rounded-[1.5rem] bg-slate-950;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.teacher-camera-view video {
+  @apply h-full w-full object-cover;
+}
+
+.teacher-camera-placeholder {
+  @apply absolute inset-0 flex flex-col items-center justify-center gap-3 text-sm font-bold text-white/50;
+}
+
+.teacher-camera-grid {
+  @apply pointer-events-none absolute inset-[10%] rounded-2xl border-2 border-white/70;
+  background-image:
+    linear-gradient(to right, transparent 49.5%, rgba(255,255,255,.25) 50%, transparent 50.5%),
+    linear-gradient(to bottom, transparent 49.5%, rgba(255,255,255,.25) 50%, transparent 50.5%);
+}
+
 .schedule-row {
   @apply flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-3;
 }

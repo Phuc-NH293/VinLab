@@ -1130,6 +1130,8 @@ function AdminDashboard() {
 }
 
 function InstructorDashboard() {
+  const teacherVideoRef = useRef(null);
+  const teacherStreamRef = useRef(null);
   const [students, setStudents] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [attendances, setAttendances] = useState([]);
@@ -1139,6 +1141,8 @@ function InstructorDashboard() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [busyStudentId, setBusyStudentId] = useState(null);
   const [message, setMessage] = useState('');
+  const [teacherCameraReady, setTeacherCameraReady] = useState(false);
+  const [teacherCameraError, setTeacherCameraError] = useState('');
 
   async function loadOverview() {
     try {
@@ -1175,6 +1179,10 @@ function InstructorDashboard() {
   useEffect(() => {
     loadAttendances(selectedSessionId);
   }, [selectedSessionId]);
+
+  useEffect(() => () => {
+    teacherStreamRef.current?.getTracks().forEach(track => track.stop());
+  }, []);
 
   const selectedSession = sessions.find(session => String(session.id) === String(selectedSessionId));
   const attendanceByStudent = new Map(attendances.map(attendance => [attendance.student_id, attendance]));
@@ -1268,6 +1276,42 @@ function InstructorDashboard() {
     }
   }
 
+  async function openTeacherCamera() {
+    setTeacherCameraError('');
+    try {
+      teacherStreamRef.current?.getTracks().forEach(track => track.stop());
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+      teacherStreamRef.current = stream;
+      if (teacherVideoRef.current) teacherVideoRef.current.srcObject = stream;
+      setTeacherCameraReady(true);
+    } catch (error) {
+      setTeacherCameraReady(false);
+      setTeacherCameraError(describeCameraError(error));
+    }
+  }
+
+  function closeTeacherCamera() {
+    teacherStreamRef.current?.getTracks().forEach(track => track.stop());
+    teacherStreamRef.current = null;
+    if (teacherVideoRef.current) teacherVideoRef.current.srcObject = null;
+    setTeacherCameraReady(false);
+  }
+
+  async function scanRoomAndConfirm() {
+    if (!teacherCameraReady) {
+      await openTeacherCamera();
+      return;
+    }
+    await scanFaceAttendances();
+  }
+
   async function reviewLeave(requestId, status) {
     try {
       await api(`/instructor/leave-requests/${requestId}`, {
@@ -1322,6 +1366,45 @@ function InstructorDashboard() {
         <TeacherStat icon={ScanFace} label="Chờ quét khuôn mặt" value={pendingFaceCount} tone="amber" />
       </section>
 
+      <section className="teacher-face-scanner">
+        <div className="teacher-face-copy">
+          <div className="teacher-face-icon"><ScanFace size={28} /></div>
+          <p className="section-kicker">Điểm danh khuôn mặt tập thể</p>
+          <h3>Quét cả phòng Lab</h3>
+          <p>
+            Mở camera, hướng về lớp học rồi bấm quét. Hệ thống xác nhận các sinh viên đã gửi
+            khuôn mặt cho buổi đang chọn và chuyển trạng thái sang Có mặt.
+          </p>
+          <div className="teacher-face-counts">
+            <span><Activity size={15} />{pendingFaceCount} đang chờ xác nhận</span>
+            <span><UserCheck size={15} />{presentCount} đã có mặt</span>
+          </div>
+          <div className="teacher-face-actions">
+            <button type="button" className="face-scan-button" onClick={scanRoomAndConfirm} disabled={!selectedSessionId || busyStudentId === 'face-scan'}>
+              <Camera size={18} />
+              {!teacherCameraReady ? 'Mở camera quét mặt' : busyStudentId === 'face-scan' ? 'Đang quét...' : `Quét và xác nhận (${pendingFaceCount})`}
+            </button>
+            {teacherCameraReady && <button type="button" className="btn-secondary" onClick={closeTeacherCamera}>Tắt camera</button>}
+          </div>
+          {teacherCameraError && <div className="result-message mt-4">❌ {teacherCameraError}</div>}
+        </div>
+        <div className="teacher-camera-view">
+          <video ref={teacherVideoRef} autoPlay muted playsInline />
+          {!teacherCameraReady && (
+            <div className="teacher-camera-placeholder">
+              <ScanFace size={44} />
+              <p>Camera quét tập thể chưa bật</p>
+            </div>
+          )}
+          {teacherCameraReady && (
+            <>
+              <div className="teacher-camera-grid" />
+              <div className="camera-caption"><Activity size={15} />Sẵn sàng quét lớp học</div>
+            </>
+          )}
+        </div>
+      </section>
+
       <section className="card">
         <div className="teacher-toolbar">
           <div className="min-w-0 flex-1">
@@ -1334,15 +1417,6 @@ function InstructorDashboard() {
           </div>
           <button type="button" className="btn-secondary" onClick={() => loadAttendances()}>
             <RefreshCw size={17} />Làm mới
-          </button>
-          <button
-            type="button"
-            className="face-scan-button"
-            onClick={scanFaceAttendances}
-            disabled={busyStudentId === 'face-scan' || !selectedSessionId}
-          >
-            <ScanFace size={18} />
-            {busyStudentId === 'face-scan' ? 'Đang quét...' : `Quét khuôn mặt (${pendingFaceCount})`}
           </button>
           <button type="button" className="btn" onClick={exportCsv}>
             <Download size={17} />Xuất CSV
