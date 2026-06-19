@@ -40,3 +40,22 @@ def create_face_thumbnail(image_bytes: bytes) -> str | None:
     if not success:
         return None
     return f"data:image/jpeg;base64,{base64.b64encode(encoded).decode()}"
+
+
+def extract_face_vector(image_bytes: bytes) -> list[float] | None:
+    arr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    if img is None:
+        return None
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 5)
+    if len(faces) == 0:
+        return None
+    x, y, width, height = max(faces, key=lambda face: face[2] * face[3])
+    face = gray[y:y + height, x:x + width]
+    face = cv2.resize(face, (32, 32), interpolation=cv2.INTER_AREA).astype(np.float32) / 255.0
+    coefficients = cv2.dct(face)[:8, :8].flatten()
+    norm = np.linalg.norm(coefficients)
+    if norm > 0:
+        coefficients = coefficients / norm
+    return [round(float(value), 6) for value in coefficients]

@@ -57,6 +57,38 @@ class ManualAttendanceRequest(BaseModel):
     student_id: int
     session_id: int
 
+class LeaveRequestCreate(BaseModel):
+    session_id: int | None = None
+    request_type: str = "leave"
+    reason: str
+    evidence_name: str | None = None
+
+class LeaveReviewRequest(BaseModel):
+    status: str
+    teacher_note: str | None = None
+
+class UserRoleUpdate(BaseModel):
+    role: str
+
+class LocationCreate(BaseModel):
+    name: str
+    room_code: str
+    latitude: float
+    longitude: float
+    radius_meters: int = 100
+    wifi_ssid: str | None = None
+    wifi_bssid: str | None = None
+    camera_devices: str | None = None
+
+class SessionUpdate(BaseModel):
+    title: str
+    room: str
+    start_time: datetime
+    end_time: datetime
+    location_id: int | None = None
+    checkin_before_minutes: int = 15
+    checkin_after_minutes: int = 10
+
 class AttendanceOut(BaseModel):
     id: int
     student_id: int

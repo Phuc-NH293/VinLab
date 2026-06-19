@@ -48,9 +48,22 @@ Mỗi lần đẩy code lên nhánh `main`, Vercel tự động build và cập 
 
 - Giảng viên: `gv001` / `VinLab@123`
 - Sinh viên: `sv001` / `VinLab@123`
+- Admin: `admin001` / `VinLab@123`
 
 API sử dụng JWT với thời hạn phiên mặc định 8 giờ. Sinh viên chỉ được truy cập màn điểm danh
 và chỉ có thể điểm danh cho chính tài khoản của mình; giảng viên có quyền quản lý lớp học.
+
+## Phạm vi MVP ba vai trò
+
+- Sinh viên: đăng ký 3–5 mẫu khuôn mặt, điểm danh QR/khuôn mặt, GPS, kiểm tra chuyển động,
+  lịch học, lịch sử chuyên cần và đơn xin phép.
+- Giảng viên/TA: bảng điều khiển realtime, xác nhận hàng loạt điểm danh khuôn mặt,
+  ghi đè thủ công, duyệt đơn và xuất CSV.
+- Admin: phân quyền, phòng Lab, GPS/Wi‑Fi/camera, thời khóa biểu, Face Vector DB và cảnh báo.
+
+Trình duyệt không cho phép đọc SSID/BSSID Wi‑Fi. Việc xác minh Wi‑Fi thật cần native mobile app
+hoặc device agent. Vector khuôn mặt hiện là bộ đặc trưng MVP và cần thay bằng InsightFace/FaceNet
+trước khi áp dụng thực tế.
 
 ## Luồng demo
 1. Vào tab Sinh viên, thêm SV001.

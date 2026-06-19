@@ -2,17 +2,21 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
   CalendarPlus,
   Camera,
   CheckCircle2,
   Clock3,
   Download,
+  Database,
+  FileCheck,
   GraduationCap,
   LayoutDashboard,
   LogIn,
   LogOut,
   MapPin,
+  MapPinned,
   QrCode,
   RefreshCw,
   ScanFace,
@@ -20,6 +24,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Trash2,
   UserCheck,
   UserPlus,
   UserX,
@@ -39,10 +44,12 @@ import {
 } from './lib/api';
 
 const navigation = [
-  { id: 'checkin', label: 'Điểm danh', description: 'Mã QR & khuôn mặt', icon: QrCode },
-  { id: 'sessions', label: 'Buổi thực hành', description: 'Lịch & mã QR', icon: CalendarPlus },
-  { id: 'students', label: 'Sinh viên', description: 'Quản lý lớp', icon: Users },
-  { id: 'instructor', label: 'Giảng viên', description: 'Theo dõi lớp học', icon: GraduationCap },
+  { id: 'checkin', label: 'Điểm danh', description: 'Mã QR & khuôn mặt', icon: QrCode, roles: ['student', 'teacher'] },
+  { id: 'studentPortal', label: 'Cổng sinh viên', description: 'Lịch, lịch sử, xin nghỉ', icon: CalendarPlus, roles: ['student'] },
+  { id: 'sessions', label: 'Buổi thực hành', description: 'Lịch & mã QR', icon: CalendarPlus, roles: ['teacher'] },
+  { id: 'students', label: 'Sinh viên', description: 'Quản lý lớp', icon: Users, roles: ['teacher'] },
+  { id: 'instructor', label: 'Giảng viên', description: 'Theo dõi lớp học', icon: GraduationCap, roles: ['teacher'] },
+  { id: 'admin', label: 'Quản trị hệ thống', description: 'Tài khoản, phòng Lab, bảo mật', icon: ShieldCheck, roles: ['admin'] },
 ];
 
 const pageMeta = {
@@ -69,6 +76,18 @@ const pageMeta = {
     title: 'Bảng điều khiển giảng viên',
     description: 'Theo dõi chuyên cần, xử lý điểm danh và xuất báo cáo lớp học.',
     icon: LayoutDashboard,
+  },
+  studentPortal: {
+    eyebrow: 'Cổng thông tin sinh viên',
+    title: 'Học tập & chuyên cần',
+    description: 'Theo dõi lịch học, lịch sử điểm danh và gửi đơn xin phép.',
+    icon: CalendarPlus,
+  },
+  admin: {
+    eyebrow: 'Quản trị toàn trường',
+    title: 'Trung tâm điều hành VinLab',
+    description: 'Quản lý tài khoản, phòng Lab, dữ liệu khuôn mặt và cảnh báo hệ thống.',
+    icon: ShieldCheck,
   },
 };
 
@@ -119,6 +138,32 @@ function getCaptureMetadata() {
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 },
     );
   });
+}
+
+function getCurrentCoordinates() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      position => resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 },
+    );
+  });
+}
+
+function captureLivenessFrame(video) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 96;
+  canvas.height = 72;
+  const context = canvas.getContext('2d');
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return context.getImageData(0, 0, canvas.width, canvas.height).data;
 }
 
 function drawVideoFrame(canvas, video, mirror = false) {
@@ -192,9 +237,7 @@ function App() {
   const [cameraPermissionReady, setCameraPermissionReady] = useState(
     () => localStorage.getItem('vinlab-camera-permission') === 'granted',
   );
-  const visibleNavigation = currentUser?.role === 'student'
-    ? navigation.filter(item => item.id === 'checkin')
-    : navigation;
+  const visibleNavigation = navigation.filter(item => item.roles.includes(currentUser?.role));
   const meta = pageMeta[tab];
   const PageIcon = meta.icon;
 
@@ -234,7 +277,7 @@ function App() {
   if (!currentUser) {
     return <LoginScreen onLogin={user => {
       setCurrentUser(user);
-      setTab(user.role === 'student' ? 'checkin' : 'instructor');
+      setTab(user.role === 'student' ? 'checkin' : user.role === 'admin' ? 'admin' : 'instructor');
     }} />;
   }
 
@@ -258,7 +301,7 @@ function App() {
           <div className="status-pill">
             <span className="status-dot" />
             <span className="hidden sm:inline">{currentUser.full_name}</span>
-            <span className="sm:hidden">{currentUser.role === 'teacher' ? 'GV' : 'SV'}</span>
+            <span className="sm:hidden">{currentUser.role === 'teacher' ? 'GV' : currentUser.role === 'admin' ? 'AD' : 'SV'}</span>
           </div>
           <button type="button" className="logout-button" onClick={handleLogout} title="Đăng xuất">
             <LogOut size={18} /><span className="hidden sm:inline">Đăng xuất</span>
@@ -325,6 +368,8 @@ function App() {
             {currentUser.role === 'teacher' && tab === 'sessions' && <Sessions />}
             {currentUser.role === 'teacher' && tab === 'students' && <Students />}
             {currentUser.role === 'teacher' && tab === 'instructor' && <InstructorDashboard />}
+            {currentUser.role === 'student' && tab === 'studentPortal' && <StudentPortal />}
+            {currentUser.role === 'admin' && tab === 'admin' && <AdminDashboard />}
           </div>
         </main>
       </div>
@@ -374,7 +419,7 @@ function LoginScreen({ onLogin }) {
 
   function useDemo(role) {
     setForm({
-      username: role === 'teacher' ? 'gv001' : 'sv001',
+      username: role === 'teacher' ? 'gv001' : role === 'admin' ? 'admin001' : 'sv001',
       password: 'VinLab@123',
     });
     setMessage('');
@@ -439,6 +484,9 @@ function LoginScreen({ onLogin }) {
             </button>
             <button type="button" onClick={() => useDemo('student')}>
               <Users size={18} /><span><strong>Sinh viên</strong><small>sv001 / VinLab@123</small></span>
+            </button>
+            <button type="button" onClick={() => useDemo('admin')}>
+              <ShieldCheck size={18} /><span><strong>Quản trị viên</strong><small>admin001 / VinLab@123</small></span>
             </button>
           </div>
         </form>
@@ -571,10 +619,521 @@ function Students() {
   );
 }
 
+function StudentPortal() {
+  const [schedule, setSchedule] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [faceProfile, setFaceProfile] = useState({ enrolled: false, sample_count: 0 });
+  const [message, setMessage] = useState('');
+  const [form, setForm] = useState({ session_id: '', request_type: 'leave', reason: '', evidence_name: '' });
+
+  async function load() {
+    try {
+      const [scheduleRows, historyRows, requestRows, profile] = await Promise.all([
+        api('/student/schedule'),
+        api('/student/attendance-history'),
+        api('/student/leave-requests'),
+        api('/student/face-profile'),
+      ]);
+      setSchedule(scheduleRows);
+      setHistory(historyRows);
+      setRequests(requestRows);
+      setFaceProfile(profile);
+      setForm(current => ({ ...current, session_id: current.session_id || String(scheduleRows[0]?.id || '') }));
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function submitLeave(event) {
+    event.preventDefault();
+    try {
+      const result = await api('/student/leave-requests', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...form,
+          session_id: form.session_id ? Number(form.session_id) : null,
+        }),
+      });
+      setMessage(`✅ ${result.message}`);
+      setForm(current => ({ ...current, reason: '', evidence_name: '' }));
+      await load();
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  const presentCount = history.filter(item => item.status === 'present').length;
+  const lateCount = history.filter(item => {
+    const session = schedule.find(row => row.id === item.session_id);
+    return session && new Date(item.checked_at) > new Date(new Date(session.start_time).getTime() + 15 * 60 * 1000);
+  }).length;
+
+  return (
+    <div className="space-y-5">
+      <section className="teacher-stats">
+        <TeacherStat icon={CalendarPlus} label="Buổi sắp tới" value={schedule.length} tone="cyan" />
+        <TeacherStat icon={UserCheck} label="Đã có mặt" value={presentCount} tone="green" />
+        <TeacherStat icon={Clock3} label="Đi muộn" value={lateCount} tone="amber" />
+        <TeacherStat icon={ScanFace} label="Mẫu khuôn mặt" value={faceProfile.sample_count} tone="red" />
+      </section>
+
+      {message && <div className="result-message">{message}</div>}
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <FaceEnrollment profile={faceProfile} onComplete={load} />
+
+        <section className="card">
+          <SectionHeading icon={CalendarPlus} kicker="Lịch học & Lab" title="Lịch sắp tới" />
+          <div className="mt-5 space-y-3">
+            {schedule.length === 0 && <EmptyState icon={CalendarPlus} text="Chưa có lịch học." />}
+            {schedule.slice(0, 6).map(session => (
+              <div className="schedule-row" key={session.id}>
+                <div className="schedule-date">
+                  <strong>{new Date(session.start_time).getDate()}</strong>
+                  <span>Tháng {new Date(session.start_time).getMonth() + 1}</span>
+                </div>
+                <div>
+                  <p>{session.title}</p>
+                  <span><MapPin size={13} />{session.room}</span>
+                  <span><Clock3 size={13} />{new Date(session.start_time).toLocaleString('vi-VN')}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <section className="card">
+          <SectionHeading icon={Activity} kicker="Chuyên cần cá nhân" title="Lịch sử điểm danh" />
+          <div className="mt-5 space-y-2">
+            {history.length === 0 && <EmptyState icon={Activity} text="Chưa có dữ liệu điểm danh." />}
+            {history.map(item => (
+              <div className="history-row" key={item.id}>
+                <span className={`attendance-status ${item.status === 'pending_face' ? 'attendance-pending' : 'attendance-present'}`}>
+                  {item.status === 'pending_face' ? 'Chờ xác nhận' : 'Có mặt'}
+                </span>
+                <div>
+                  <p>{item.title}</p>
+                  <small>{item.room} · {new Date(item.checked_at).toLocaleString('vi-VN')}</small>
+                </div>
+                <b>{item.method}</b>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <form className="card" onSubmit={submitLeave}>
+          <SectionHeading icon={FileCheck} kicker="Đơn trực tuyến" title="Xin nghỉ / Báo đi muộn" />
+          <div className="mt-5 space-y-4">
+            <label className="field-label">Buổi học
+              <select className="input mt-2" value={form.session_id} onChange={event => setForm({ ...form, session_id: event.target.value })}>
+                <option value="">Không gắn buổi cụ thể</option>
+                {schedule.map(session => <option key={session.id} value={session.id}>{session.title}</option>)}
+              </select>
+            </label>
+            <label className="field-label">Loại đơn
+              <select className="input mt-2" value={form.request_type} onChange={event => setForm({ ...form, request_type: event.target.value })}>
+                <option value="leave">Xin nghỉ phép</option>
+                <option value="late">Báo đi muộn</option>
+              </select>
+            </label>
+            <label className="field-label">Lý do
+              <textarea className="input mt-2 min-h-24 resize-y" value={form.reason} onChange={event => setForm({ ...form, reason: event.target.value })} required />
+            </label>
+            <label className="field-label">Tên minh chứng
+              <input className="input mt-2" value={form.evidence_name} onChange={event => setForm({ ...form, evidence_name: event.target.value })} placeholder="Ví dụ: Giấy khám Vinmec" />
+            </label>
+            <button className="btn w-full" type="submit"><Send size={17} />Gửi đơn</button>
+          </div>
+          <div className="mt-5 space-y-2">
+            {requests.slice(0, 4).map(request => (
+              <div className="request-row" key={request.id}>
+                <span>{request.request_type === 'leave' ? 'Xin nghỉ' : 'Đi muộn'}</span>
+                <b className={`request-${request.status}`}>{request.status === 'pending' ? 'Chờ duyệt' : request.status === 'approved' ? 'Đã duyệt' : 'Từ chối'}</b>
+              </div>
+            ))}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function FaceEnrollment({ profile, onComplete }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [samples, setSamples] = useState([]);
+  const [active, setActive] = useState(false);
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function start() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: 'user' } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      setActive(true);
+    } catch (error) {
+      setMessage(`❌ ${describeCameraError(error)}`);
+    }
+  }
+
+  function stop() {
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setActive(false);
+  }
+
+  useEffect(() => stop, []);
+
+  async function captureSample() {
+    const video = videoRef.current;
+    if (!video?.videoWidth || samples.length >= 5) return;
+    const canvas = document.createElement('canvas');
+    drawVideoFrame(canvas, video, true);
+    const file = await canvasToJpegFile(canvas, `face-sample-${samples.length + 1}.jpg`);
+    if (file) setSamples(current => [...current, file]);
+  }
+
+  async function enroll() {
+    if (samples.length < 3) {
+      setMessage('❌ Cần chụp ít nhất 3 góc mặt.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      samples.forEach(file => formData.append('files', file));
+      const response = await fetch(`${API}/student/face-enrollment`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: formData,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || 'Không thể đăng ký khuôn mặt');
+      setMessage(`✅ ${data.message}`);
+      setSamples([]);
+      stop();
+      await onComplete();
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="card">
+      <div className="flex items-start justify-between gap-3">
+        <SectionHeading icon={ScanFace} kicker="Face Enrollment" title="Đăng ký khuôn mặt" />
+        <span className={`attendance-status ${profile.enrolled ? 'attendance-present' : 'attendance-absent'}`}>
+          {profile.enrolled ? 'Đã đăng ký' : 'Chưa đăng ký'}
+        </span>
+      </div>
+      <p className="mt-4 text-sm leading-relaxed text-slate-500">Chụp 3–5 góc mặt. Hệ thống trích xuất vector đặc trưng và không lưu ảnh gốc.</p>
+      <div className="enrollment-camera mt-5">
+        <video ref={videoRef} autoPlay muted playsInline />
+        {!active && <div><ScanFace size={36} /><p>Bật camera trước để bắt đầu</p></div>}
+      </div>
+      <div className="mt-3 flex gap-2">
+        {!active
+          ? <button type="button" className="btn w-full" onClick={start}><Camera size={17} />Mở camera</button>
+          : <button type="button" className="btn w-full" onClick={captureSample} disabled={samples.length >= 5}><Camera size={17} />Chụp mẫu {samples.length + 1}</button>}
+        {active && <button type="button" className="btn-secondary" onClick={stop}>Dừng</button>}
+      </div>
+      <div className="sample-progress mt-4">
+        {[0, 1, 2, 3, 4].map(index => <span key={index} className={index < samples.length ? 'sample-done' : ''}>{index + 1}</span>)}
+      </div>
+      <button type="button" className="face-scan-button mt-4 w-full" onClick={enroll} disabled={samples.length < 3 || loading}>
+        <ShieldCheck size={17} />{loading ? 'Đang trích xuất vector...' : 'Lưu vector khuôn mặt'}
+      </button>
+      {message && <div className="result-message mt-4">{message}</div>}
+    </section>
+  );
+}
+
+function AdminDashboard() {
+  const [section, setSection] = useState('users');
+  const [users, setUsers] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [profiles, setProfiles] = useState([]);
+  const [anomalies, setAnomalies] = useState([]);
+  const [message, setMessage] = useState('');
+  const [locationForm, setLocationForm] = useState({
+    name: 'CECS Lab 401',
+    room_code: 'CECS-401',
+    latitude: 20.991,
+    longitude: 105.944,
+    radius_meters: 120,
+    wifi_ssid: 'VinUni-Student',
+    wifi_bssid: '',
+    camera_devices: '',
+  });
+  const [sessionForm, setSessionForm] = useState({
+    id: '',
+    title: 'Lab AI',
+    room: 'CECS Lab 401',
+    start_time: new Date().toISOString().slice(0, 16),
+    end_time: new Date(Date.now() + 90 * 60 * 1000).toISOString().slice(0, 16),
+    location_id: '',
+    checkin_before_minutes: 15,
+    checkin_after_minutes: 10,
+  });
+
+  async function load() {
+    try {
+      const [userRows, locationRows, sessionRows, profileRows, anomalyRows] = await Promise.all([
+        api('/admin/users'),
+        api('/admin/locations'),
+        api('/sessions'),
+        api('/admin/face-profiles'),
+        api('/admin/anomalies'),
+      ]);
+      setUsers(userRows);
+      setLocations(locationRows);
+      setSessions(sessionRows);
+      setProfiles(profileRows);
+      setAnomalies(anomalyRows);
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function updateRole(userId, role) {
+    try {
+      await api(`/admin/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ role }) });
+      setMessage('✅ Đã cập nhật quyền tài khoản.');
+      await load();
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  async function createLocation(event) {
+    event.preventDefault();
+    try {
+      await api('/admin/locations', { method: 'POST', body: JSON.stringify({
+        ...locationForm,
+        latitude: Number(locationForm.latitude),
+        longitude: Number(locationForm.longitude),
+        radius_meters: Number(locationForm.radius_meters),
+      }) });
+      setMessage('✅ Đã thêm phòng Lab và vùng GPS.');
+      await load();
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  async function deleteLocation(id) {
+    await api(`/admin/locations/${id}`, { method: 'DELETE' });
+    await load();
+  }
+
+  async function saveSession(event) {
+    event.preventDefault();
+    try {
+      let sessionId = sessionForm.id;
+      if (!sessionId) {
+        const created = await api('/sessions', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: sessionForm.title,
+            room: sessionForm.room,
+            start_time: new Date(sessionForm.start_time).toISOString(),
+            end_time: new Date(sessionForm.end_time).toISOString(),
+          }),
+        });
+        sessionId = created.id;
+      }
+      await api(`/admin/sessions/${sessionId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          title: sessionForm.title,
+          room: sessionForm.room,
+          start_time: new Date(sessionForm.start_time).toISOString(),
+          end_time: new Date(sessionForm.end_time).toISOString(),
+          location_id: sessionForm.location_id ? Number(sessionForm.location_id) : null,
+          checkin_before_minutes: Number(sessionForm.checkin_before_minutes),
+          checkin_after_minutes: Number(sessionForm.checkin_after_minutes),
+        }),
+      });
+      setMessage('✅ Đã lưu thời khóa biểu và chính sách check-in.');
+      setSessionForm(current => ({ ...current, id: '' }));
+      await load();
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
+    }
+  }
+
+  function editSession(session) {
+    setSection('schedule');
+    setSessionForm(current => ({
+      ...current,
+      id: session.id,
+      title: session.title,
+      room: session.room,
+      start_time: new Date(session.start_time).toISOString().slice(0, 16),
+      end_time: new Date(session.end_time).toISOString().slice(0, 16),
+    }));
+  }
+
+  async function deleteSession(id) {
+    await api(`/admin/sessions/${id}`, { method: 'DELETE' });
+    await load();
+  }
+
+  async function deleteProfile(id) {
+    await api(`/admin/face-profiles/${id}`, { method: 'DELETE' });
+    await load();
+  }
+
+  const adminTabs = [
+    ['users', 'Tài khoản', Users],
+    ['locations', 'Phòng Lab', MapPinned],
+    ['schedule', 'Thời khóa biểu', CalendarPlus],
+    ['faces', 'Face Vector DB', Database],
+    ['alerts', 'Cảnh báo', AlertTriangle],
+  ];
+
+  return (
+    <div className="space-y-5">
+      <section className="teacher-stats">
+        <TeacherStat icon={Users} label="Tài khoản" value={users.length} tone="red" />
+        <TeacherStat icon={MapPinned} label="Phòng Lab" value={locations.length} tone="cyan" />
+        <TeacherStat icon={Database} label="Hồ sơ khuôn mặt" value={profiles.length} tone="green" />
+        <TeacherStat icon={AlertTriangle} label="Cảnh báo mở" value={anomalies.filter(item => item.status === 'open').length} tone="amber" />
+      </section>
+      {message && <div className="result-message">{message}</div>}
+      <div className="admin-tabs">
+        {adminTabs.map(([id, label, Icon]) => (
+          <button type="button" key={id} className={section === id ? 'admin-tab-active' : ''} onClick={() => setSection(id)}>
+            <Icon size={17} />{label}
+          </button>
+        ))}
+      </div>
+
+      {section === 'users' && (
+        <section className="card">
+          <SectionHeading icon={Users} kicker="User Management" title="Tài khoản & phân quyền" />
+          <div className="mt-5 space-y-2">
+            {users.map(user => (
+              <div className="admin-list-row" key={user.id}>
+                <div className="student-avatar">{user.full_name?.charAt(0) || 'U'}</div>
+                <div><p>{user.full_name}</p><span>{user.username}{user.student_code ? ` · ${user.student_code}` : ''}</span></div>
+                <select className="compact-select" value={user.role} onChange={event => updateRole(user.id, event.target.value)}>
+                  <option value="student">Sinh viên</option>
+                  <option value="teacher">Giảng viên / TA</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {section === 'locations' && (
+        <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+          <form className="card" onSubmit={createLocation}>
+            <SectionHeading icon={MapPinned} kicker="Location Setup" title="Thêm phòng Lab" />
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {[
+                ['name', 'Tên phòng'],
+                ['room_code', 'Mã phòng'],
+                ['latitude', 'Vĩ độ'],
+                ['longitude', 'Kinh độ'],
+                ['radius_meters', 'Bán kính GPS (m)'],
+                ['wifi_ssid', 'Wi-Fi SSID'],
+                ['wifi_bssid', 'Wi-Fi BSSID'],
+                ['camera_devices', 'Camera cố định'],
+              ].map(([key, label]) => (
+                <label className="field-label" key={key}>{label}<input className="input mt-2" value={locationForm[key]} onChange={event => setLocationForm({ ...locationForm, [key]: event.target.value })} /></label>
+              ))}
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-amber-700">Web có thể kiểm tra GPS; xác minh SSID/BSSID thật cần native app hoặc device agent của VinUni.</p>
+            <button className="btn mt-4 w-full" type="submit"><MapPinned size={17} />Lưu phòng Lab</button>
+          </form>
+          <section className="card">
+            <SectionHeading icon={MapPin} kicker="Khu vực hoạt động" title="Danh sách phòng Lab" />
+            <div className="mt-5 space-y-2">
+              {locations.map(location => (
+                <div className="admin-list-row" key={location.id}>
+                  <MapPinned className="text-cyan-600" />
+                  <div><p>{location.name}</p><span>{location.room_code} · Bán kính {location.radius_meters}m · {location.wifi_ssid || 'Chưa cấu hình Wi-Fi'}</span></div>
+                  <button className="icon-danger" type="button" onClick={() => deleteLocation(location.id)}><Trash2 size={17} /></button>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {section === 'schedule' && (
+        <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+          <form className="card" onSubmit={saveSession}>
+            <SectionHeading icon={CalendarPlus} kicker="Curriculum Management" title={sessionForm.id ? 'Chỉnh sửa buổi học' : 'Tạo buổi học'} />
+            <div className="mt-5 space-y-3">
+              <label className="field-label">Tên buổi học<input className="input mt-2" value={sessionForm.title} onChange={event => setSessionForm({ ...sessionForm, title: event.target.value })} /></label>
+              <label className="field-label">Phòng<input className="input mt-2" value={sessionForm.room} onChange={event => setSessionForm({ ...sessionForm, room: event.target.value })} /></label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="field-label">Bắt đầu<input type="datetime-local" className="input mt-2" value={sessionForm.start_time} onChange={event => setSessionForm({ ...sessionForm, start_time: event.target.value })} /></label>
+                <label className="field-label">Kết thúc<input type="datetime-local" className="input mt-2" value={sessionForm.end_time} onChange={event => setSessionForm({ ...sessionForm, end_time: event.target.value })} /></label>
+              </div>
+              <label className="field-label">Vùng GPS<select className="input mt-2" value={sessionForm.location_id} onChange={event => setSessionForm({ ...sessionForm, location_id: event.target.value })}><option value="">Không áp dụng</option>{locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="field-label">Cho phép trước (phút)<input className="input mt-2" type="number" value={sessionForm.checkin_before_minutes} onChange={event => setSessionForm({ ...sessionForm, checkin_before_minutes: event.target.value })} /></label>
+                <label className="field-label">Cho phép sau (phút)<input className="input mt-2" type="number" value={sessionForm.checkin_after_minutes} onChange={event => setSessionForm({ ...sessionForm, checkin_after_minutes: event.target.value })} /></label>
+              </div>
+              <button className="btn w-full" type="submit"><CalendarPlus size={17} />Lưu thời khóa biểu</button>
+            </div>
+          </form>
+          <section className="card">
+            <SectionHeading icon={Clock3} kicker="Lịch đang quản lý" title="Các buổi học" />
+            <div className="mt-5 space-y-2">{sessions.map(session => <div className="admin-list-row" key={session.id}><CalendarPlus className="text-red-500" /><div><p>{session.title}</p><span>{session.room} · {new Date(session.start_time).toLocaleString('vi-VN')}</span></div><button className="btn-secondary" type="button" onClick={() => editSession(session)}>Sửa</button><button className="icon-danger" type="button" onClick={() => deleteSession(session.id)}><Trash2 size={17} /></button></div>)}</div>
+          </section>
+        </div>
+      )}
+
+      {section === 'faces' && (
+        <section className="card">
+          <SectionHeading icon={Database} kicker="Face Vector DB" title="Dữ liệu khuôn mặt" description="Chỉ lưu vector đặc trưng; không lưu ảnh gốc." />
+          <div className="mt-5 space-y-2">{profiles.map(profile => <div className="admin-list-row" key={profile.id}><Database className="text-emerald-600" /><div><p>{profile.full_name}</p><span>{profile.student_code} · {profile.class_name} · {profile.sample_count} vector mẫu</span></div><span className="attendance-status attendance-present">{profile.status}</span><button className="icon-danger" type="button" onClick={() => deleteProfile(profile.id)}><Trash2 size={17} /></button></div>)}</div>
+        </section>
+      )}
+
+      {section === 'alerts' && (
+        <section className="card">
+          <SectionHeading icon={AlertTriangle} kicker="Anomaly Detection" title="Cảnh báo nghi vấn" />
+          <div className="mt-5 space-y-2">
+            {anomalies.length === 0 && <EmptyState icon={ShieldCheck} text="Chưa phát hiện bất thường." />}
+            {anomalies.map(alert => <div className="alert-row" key={alert.id}><AlertTriangle size={20} /><div><p>{alert.full_name || 'Không rõ sinh viên'} · {alert.alert_type}</p><span>{alert.details}</span></div><b>{alert.severity}</b></div>)}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
 function InstructorDashboard() {
   const [students, setStudents] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [attendances, setAttendances] = useState([]);
+  const [leaveRequests, setLeaveRequests] = useState([]);
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -583,12 +1142,14 @@ function InstructorDashboard() {
 
   async function loadOverview() {
     try {
-      const [studentRows, sessionRows] = await Promise.all([
+      const [studentRows, sessionRows, leaveRows] = await Promise.all([
         api('/students'),
         api('/sessions'),
+        api('/instructor/leave-requests'),
       ]);
       setStudents(studentRows);
       setSessions(sessionRows);
+      setLeaveRequests(leaveRows);
       setSelectedSessionId(current => current || String(sessionRows[0]?.id || ''));
     } catch (error) {
       setMessage(`❌ ${error.message}`);
@@ -704,6 +1265,19 @@ function InstructorDashboard() {
       setMessage(`❌ ${error.message}`);
     } finally {
       setBusyStudentId(null);
+    }
+  }
+
+  async function reviewLeave(requestId, status) {
+    try {
+      await api(`/instructor/leave-requests/${requestId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, teacher_note: status === 'approved' ? 'Đã xác nhận' : 'Không đủ điều kiện' }),
+      });
+      setMessage(status === 'approved' ? '✅ Đã duyệt đơn.' : '✅ Đã từ chối đơn.');
+      await loadOverview();
+    } catch (error) {
+      setMessage(`❌ ${error.message}`);
     }
   }
 
@@ -865,6 +1439,35 @@ function InstructorDashboard() {
               </article>
             );
           })}
+        </div>
+      </section>
+
+      <section className="card">
+        <div className="flex items-center justify-between gap-3">
+          <SectionHeading icon={FileCheck} kicker="Leave Requests" title="Phê duyệt đơn sinh viên" />
+          <span className="count-badge">{leaveRequests.filter(request => request.status === 'pending').length} chờ duyệt</span>
+        </div>
+        <div className="mt-5 space-y-2">
+          {leaveRequests.length === 0 && <EmptyState icon={FileCheck} text="Chưa có đơn xin phép." />}
+          {leaveRequests.map(request => (
+            <div className="leave-review-row" key={request.id}>
+              <div>
+                <p>{request.full_name} <small>({request.student_code})</small></p>
+                <span>{request.request_type === 'leave' ? 'Xin nghỉ' : 'Báo đi muộn'} · {request.session_title || 'Không gắn buổi học'}</span>
+                <em>{request.reason}{request.evidence_name ? ` · Minh chứng: ${request.evidence_name}` : ''}</em>
+              </div>
+              {request.status === 'pending' ? (
+                <div>
+                  <button type="button" className="attendance-action attendance-add" onClick={() => reviewLeave(request.id, 'approved')}>Duyệt</button>
+                  <button type="button" className="attendance-action attendance-remove" onClick={() => reviewLeave(request.id, 'rejected')}>Từ chối</button>
+                </div>
+              ) : (
+                <span className={`attendance-status ${request.status === 'approved' ? 'attendance-present' : 'attendance-absent'}`}>
+                  {request.status === 'approved' ? 'Đã duyệt' : 'Từ chối'}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       </section>
     </div>
@@ -1296,6 +1899,8 @@ function FaceDetect({ registerCameraStop, currentUser }) {
   const [capturing, setCapturing] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [selectedSessionId, setSelectedSessionId] = useState('');
+  const [livenessPassed, setLivenessPassed] = useState(false);
+  const [livenessChecking, setLivenessChecking] = useState(false);
 
   useEffect(() => {
     api('/sessions')
@@ -1416,6 +2021,29 @@ function FaceDetect({ registerCameraStop, currentUser }) {
     }
   }
 
+  async function runLivenessCheck() {
+    const video = videoRef.current;
+    if (!video?.videoWidth) {
+      setMessage('❌ Camera chưa sẵn sàng.');
+      return;
+    }
+    setLivenessChecking(true);
+    setLivenessPassed(false);
+    setMessage('Hãy nháy mắt hoặc quay nhẹ khuôn mặt...');
+    const firstFrame = captureLivenessFrame(video);
+    await new Promise(resolve => setTimeout(resolve, 1600));
+    const secondFrame = captureLivenessFrame(video);
+    let difference = 0;
+    for (let index = 0; index < firstFrame.length; index += 16) {
+      difference += Math.abs(firstFrame[index] - secondFrame[index]);
+    }
+    const score = difference / (firstFrame.length / 16);
+    const passed = score > 3.2;
+    setLivenessPassed(passed);
+    setMessage(passed ? '✅ Đã xác nhận chuyển động khuôn mặt.' : '❌ Chưa thấy chuyển động rõ, hãy thử lại.');
+    setLivenessChecking(false);
+  }
+
   async function upload() {
     if (!photo) {
       setMessage('❌ Hãy chụp khuôn mặt trước khi gửi.');
@@ -1431,6 +2059,12 @@ function FaceDetect({ registerCameraStop, currentUser }) {
       const formData = new FormData();
       formData.append('file', photo);
       formData.append('session_id', selectedSessionId);
+      const coordinates = await getCurrentCoordinates();
+      if (coordinates) {
+        formData.append('latitude', String(coordinates.latitude));
+        formData.append('longitude', String(coordinates.longitude));
+      }
+      formData.append('liveness_passed', String(livenessPassed));
       const response = await fetch(`${API}/face-check-in`, {
         method: 'POST',
         headers: authHeaders(),
@@ -1496,6 +2130,10 @@ function FaceDetect({ registerCameraStop, currentUser }) {
           </select>
         </label>
 
+        <button type="button" className={`liveness-button mt-4 ${livenessPassed ? 'liveness-passed' : ''}`} onClick={runLivenessCheck} disabled={!cameraReady || livenessChecking}>
+          <Activity size={18} />{livenessChecking ? 'Đang kiểm tra chuyển động...' : livenessPassed ? 'Đã vượt qua Liveness' : 'Kiểm tra Liveness'}
+        </button>
+
         <div className="mt-5">
           <button type="button" className="btn w-full" onClick={capture} disabled={!cameraReady || capturing}>
             <Camera size={18} />{capturing ? 'Đang ghi nhận...' : 'Chụp khuôn mặt'}
@@ -1518,7 +2156,7 @@ function FaceDetect({ registerCameraStop, currentUser }) {
               <p>Ảnh vừa chụp sẽ xuất hiện tại đây</p>
             </div>
           )}
-          <button type="button" className="btn mt-4 w-full" onClick={upload} disabled={!photo || loading || !selectedSessionId}>
+          <button type="button" className="btn mt-4 w-full" onClick={upload} disabled={!photo || loading || !selectedSessionId || !livenessPassed}>
             <Send size={18} />{loading ? 'Đang gửi...' : 'Gửi điểm danh khuôn mặt'}
           </button>
           {message && <div className="result-message mt-4">{message}</div>}
