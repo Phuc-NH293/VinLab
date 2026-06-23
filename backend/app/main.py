@@ -1,12 +1,18 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, Request
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from functools import lru_cache
 import json
 import math
+import os
 import secrets
-from .database import Base, engine, get_db
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlencode
+from urllib.request import urlopen
+from .database import Base, engine, get_db, ensure_schema_columns
 from .models import (
     Student,
     User,
@@ -17,6 +23,12 @@ from .models import (
     LabLocation,
     SessionPolicy,
     AnomalyAlert,
+    ClassRoom,
+    Subject,
+    ClassStudent,
+    AttendanceLog,
+    Appeal,
+    LessonSlide,
 )
 from .schemas import (
     StudentCreate,
@@ -33,6 +45,13 @@ from .schemas import (
     LocationCreate,
     SessionUpdate,
     AttendanceOut,
+    ClassCreate,
+    SubjectCreate,
+    ClassStudentCreate,
+    SessionStatusUpdate,
+    AttendanceReview,
+    AppealCreate,
+    AppealReview,
 )
 from .cv_service import create_face_thumbnail, extract_face_vector
 from .auth import (
@@ -44,6 +63,7 @@ from .auth import (
 )
 
 Base.metadata.create_all(bind=engine)
+ensure_schema_columns()
 app = FastAPI(title="Smart Lab Attendance API")
 
 app.add_middleware(
@@ -54,15 +74,59 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+LESSON_TITLES = {
+    1: "Nền tảng AI & LLM",
+    2: "Xác định bài toán AI",
+    3: "Chatbot & Agent",
+    4: "Thiết kế câu lệnh & Tool Calling",
+    5: "Tư duy sản phẩm AI",
+    6: "Xây dựng nguyên mẫu thử nghiệm",
+}
+MAX_SLIDE_SIZE = 20 * 1024 * 1024
+
 def serialize_user(user: User):
     return {
         "id": user.id,
         "username": user.username,
+        "email": user.email,
         "full_name": user.full_name,
         "role": user.role,
         "student_id": user.student_id,
         "student_code": user.student.student_code if user.student else None,
     }
+
+def add_log(db, user, action, entity_type=None, entity_id=None, details=None):
+    db.add(AttendanceLog(
+        user_id=user.id if user else None,
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        details=json.dumps(details, ensure_ascii=False) if isinstance(details, (dict, list)) else details,
+    ))
+
+def serialize_lesson_slide(slide: LessonSlide):
+    return {
+        "id": slide.id,
+        "lesson_id": slide.lesson_id,
+        "title": slide.title,
+        "file_name": slide.file_name,
+        "file_size": slide.file_size,
+        "uploaded_by": slide.uploaded_by,
+        "uploaded_at": slide.uploaded_at,
+        "updated_at": slide.updated_at,
+    }
+
+def face_similarity(probe, stored_vectors):
+    if not probe or not stored_vectors:
+        return 0.0
+    scores = []
+    for vector in stored_vectors:
+        dot = sum(a * b for a, b in zip(probe, vector))
+        left = math.sqrt(sum(a * a for a in probe))
+        right = math.sqrt(sum(b * b for b in vector))
+        if left and right:
+            scores.append(dot / (left * right))
+    return max(scores, default=0.0)
 
 
 def seed_demo_accounts():
@@ -150,13 +214,89 @@ def flag_overlapping_attendance(db: Session, student_id: int, session: LabSessio
             ))
             return
 
+def flag_shared_device(db: Session, student_id: int, session_id: int, device_id: str | None):
+    if not device_id:
+        return False
+    other = db.query(Attendance).filter(
+        Attendance.session_id == session_id,
+        Attendance.device_id == device_id,
+        Attendance.student_id != student_id,
+    ).first()
+    if not other:
+        return False
+    db.add(AnomalyAlert(
+        student_id=student_id,
+        session_id=session_id,
+        alert_type="shared_device",
+        details=f"Device {device_id} was used by multiple students in one session",
+        severity="high",
+    ))
+    return True
+
 @app.get("/api")
 def root():
     return {"message": "Smart Lab Attendance API running"}
 
+
+@lru_cache(maxsize=2048)
+def reverse_geocode_google(latitude: float, longitude: float):
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(503, "Google Maps Geocoding chưa được cấu hình")
+
+    query = urlencode({
+        "latlng": f"{latitude:.6f},{longitude:.6f}",
+        "language": "vi",
+        "region": "vn",
+        "key": api_key,
+    })
+    try:
+        with urlopen(
+            f"https://maps.googleapis.com/maps/api/geocode/json?{query}",
+            timeout=8,
+        ) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError):
+        raise HTTPException(502, "Không thể tra cứu địa chỉ từ Google Maps")
+
+    status = payload.get("status")
+    if status == "ZERO_RESULTS":
+        raise HTTPException(404, "Không tìm thấy địa chỉ tại vị trí này")
+    if status != "OK":
+        raise HTTPException(502, payload.get("error_message") or "Google Maps Geocoding trả về lỗi")
+
+    results = payload.get("results") or []
+    if not results:
+        raise HTTPException(404, "Không tìm thấy địa chỉ tại vị trí này")
+
+    preferred_types = ("street_address", "premise", "subpremise", "point_of_interest", "route")
+    result = next(
+        (item for address_type in preferred_types for item in results if address_type in item.get("types", [])),
+        results[0],
+    )
+    return {
+        "address": result.get("formatted_address"),
+        "place_id": result.get("place_id"),
+        "location_type": result.get("geometry", {}).get("location_type"),
+        "source": "google",
+    }
+
+
+@app.get("/api/location/reverse")
+def reverse_location(
+    latitude: float,
+    longitude: float,
+    current_user: User = Depends(get_current_user),
+):
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        raise HTTPException(400, "Tọa độ không hợp lệ")
+    return reverse_geocode_google(round(latitude, 5), round(longitude, 5))
+
+
 @app.post("/api/auth/login", response_model=TokenOut)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == payload.username.strip().lower()).first()
+    identifier = payload.username.strip().lower()
+    user = db.query(User).filter((User.username == identifier) | (User.email == identifier)).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(401, "Tên đăng nhập hoặc mật khẩu không đúng")
     return {
@@ -169,6 +309,94 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 @app.get("/api/auth/me")
 def auth_me(current_user: User = Depends(get_current_user)):
     return serialize_user(current_user)
+
+
+@app.get("/api/lessons/slides")
+def list_lesson_slides(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    slides = db.query(LessonSlide).order_by(LessonSlide.lesson_id.asc()).all()
+    return [serialize_lesson_slide(slide) for slide in slides]
+
+
+@app.get("/api/lessons/{lesson_id}/slide")
+def get_lesson_slide(
+    lesson_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    slide = db.query(LessonSlide).filter(LessonSlide.lesson_id == lesson_id).first()
+    if not slide:
+        raise HTTPException(404, "Bài học chưa có slide PDF")
+    encoded_name = quote(slide.file_name)
+    return Response(
+        content=slide.file_data,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"inline; filename*=UTF-8''{encoded_name}",
+            "Content-Length": str(slide.file_size),
+        },
+    )
+
+
+@app.post("/api/lessons/{lesson_id}/slide")
+async def upload_lesson_slide(
+    lesson_id: int,
+    file: UploadFile = File(...),
+    title: str = Form(""),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    if lesson_id not in LESSON_TITLES:
+        raise HTTPException(404, "Bài học không tồn tại")
+    file_name = (file.filename or "").strip()
+    if file.content_type != "application/pdf" or not file_name.lower().endswith(".pdf"):
+        raise HTTPException(400, "Chỉ chấp nhận file PDF")
+    file_data = await file.read(MAX_SLIDE_SIZE + 1)
+    if not file_data.startswith(b"%PDF-"):
+        raise HTTPException(400, "File tải lên không phải PDF hợp lệ")
+    if len(file_data) > MAX_SLIDE_SIZE:
+        raise HTTPException(400, "File PDF không được vượt quá 20 MB")
+
+    slide = db.query(LessonSlide).filter(LessonSlide.lesson_id == lesson_id).first()
+    if not slide:
+        slide = LessonSlide(lesson_id=lesson_id, uploaded_by=current_user.id)
+        db.add(slide)
+    slide.title = title.strip() or LESSON_TITLES[lesson_id]
+    slide.file_name = file_name[:255]
+    slide.file_size = len(file_data)
+    slide.file_data = file_data
+    slide.uploaded_by = current_user.id
+    slide.updated_at = datetime.utcnow()
+    db.flush()
+    add_log(
+        db,
+        current_user,
+        "lesson_slide_uploaded",
+        "lesson_slide",
+        slide.id,
+        {"lesson_id": lesson_id, "file_name": slide.file_name, "file_size": slide.file_size},
+    )
+    db.commit()
+    db.refresh(slide)
+    return serialize_lesson_slide(slide)
+
+
+@app.delete("/api/lessons/{lesson_id}/slide")
+def delete_lesson_slide(
+    lesson_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    slide = db.query(LessonSlide).filter(LessonSlide.lesson_id == lesson_id).first()
+    if not slide:
+        raise HTTPException(404, "Bài học chưa có slide PDF")
+    slide_id = slide.id
+    db.delete(slide)
+    add_log(db, current_user, "lesson_slide_deleted", "lesson_slide", slide_id, {"lesson_id": lesson_id})
+    db.commit()
+    return {"ok": True}
 
 
 @app.post("/api/students", response_model=StudentOut)
@@ -207,10 +435,17 @@ def list_students(
 def create_session(
     payload: SessionCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_role("teacher", "admin")),
+    current_user: User = Depends(require_role("teacher", "admin")),
 ):
-    session = LabSession(**payload.model_dump(), qr_token=secrets.token_urlsafe(16))
+    session = LabSession(
+        **payload.model_dump(),
+        qr_token=secrets.token_urlsafe(16),
+        teacher_id=current_user.id if current_user.role == "teacher" else None,
+        status="active",
+    )
     db.add(session)
+    db.flush()
+    add_log(db, current_user, "session_created", "attendance_session", session.id, {"title": session.title})
     db.commit()
     db.refresh(session)
     return session
@@ -226,9 +461,16 @@ def list_sessions(
 @app.get("/api/student/schedule")
 def student_schedule(
     db: Session = Depends(get_db),
-    _: User = Depends(require_role("student")),
+    current_user: User = Depends(require_role("student")),
 ):
-    return db.query(LabSession).order_by(LabSession.start_time.asc()).all()
+    class_ids = [
+        row.class_id
+        for row in db.query(ClassStudent).filter(ClassStudent.student_id == current_user.student_id).all()
+    ]
+    query = db.query(LabSession)
+    if class_ids:
+        query = query.filter((LabSession.class_id.in_(class_ids)) | (LabSession.class_id.is_(None)))
+    return query.order_by(LabSession.start_time.asc()).all()
 
 
 @app.get("/api/student/attendance-history")
@@ -323,6 +565,7 @@ async def face_enrollment(
     profile.updated_at = datetime.utcnow()
     if current_user.student and thumbnail:
         current_user.student.face_image_path = thumbnail
+    add_log(db, current_user, "face_enrolled", "face_profile", profile.id, {"sample_count": len(vectors)})
     db.commit()
     return {
         "ok": True,
@@ -341,11 +584,53 @@ def student_face_profile(
         "enrolled": bool(profile and profile.status == "active"),
         "sample_count": profile.sample_count if profile else 0,
         "updated_at": profile.updated_at if profile else None,
+        "face_image_path": current_user.student.face_image_path if current_user.student else None,
     }
+
+
+@app.post("/api/student/face-access")
+async def student_face_access(
+    file: UploadFile = File(...),
+    liveness_passed: bool = Form(False),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("student")),
+):
+    profile = db.query(FaceProfile).filter(
+        FaceProfile.student_id == current_user.student_id,
+        FaceProfile.status == "active",
+    ).first()
+    if not profile:
+        raise HTTPException(400, "Bạn cần đăng ký khuôn mặt trước")
+    if not liveness_passed:
+        raise HTTPException(400, "Chưa hoàn thành xác thực chuyển động")
+
+    image_bytes = await file.read()
+    thumbnail = create_face_thumbnail(image_bytes)
+    probe_vector = extract_face_vector(image_bytes)
+    if not thumbnail or not probe_vector:
+        raise HTTPException(400, "Chưa phát hiện khuôn mặt rõ trong ảnh")
+
+    try:
+        stored_vectors = json.loads(profile.vectors_json or "[]")
+    except json.JSONDecodeError:
+        stored_vectors = []
+    confidence = round(face_similarity(probe_vector, stored_vectors), 4)
+    add_log(db, current_user, "face_access", "face_profile", profile.id, {
+        "confidence_score": confidence,
+        "liveness_passed": True,
+    })
+    db.commit()
+    return {
+        "ok": True,
+        "confidence_score": confidence,
+        "message": "Xác thực khuôn mặt thành công",
+    }
+
 
 @app.post("/api/check-in", response_model=AttendanceOut)
 def check_in(
     payload: CheckInRequest,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -358,11 +643,33 @@ def check_in(
     session = db.query(LabSession).filter(LabSession.qr_token == payload.qr_token).first()
     if not session:
         raise HTTPException(404, "QR không hợp lệ")
+    if session.status != "active":
+        raise HTTPException(400, "Attendance session is closed")
+    if session.class_id:
+        enrolled = db.query(ClassStudent).filter(
+            ClassStudent.class_id == session.class_id,
+            ClassStudent.student_id == student.id,
+        ).first()
+        if not enrolled:
+            raise HTTPException(403, "Student is not enrolled in this class")
     now = datetime.utcnow()
     if not (session.start_time <= now <= session.end_time):
         raise HTTPException(400, "Ngoài thời gian điểm danh")
-    attendance = Attendance(student_id=student.id, session_id=session.id, method="QR")
+    status = "late" if now.timestamp() > session.start_time.timestamp() + 15 * 60 else "present"
+    device_id = request.headers.get("x-device-id")
+    if flag_shared_device(db, student.id, session.id, device_id):
+        db.commit()
+        raise HTTPException(400, "Thiáº¿t bá»‹ nĂ y Ä‘Ă£ Ä‘Æ°á»£c dĂ¹ng Ä‘iá»ƒm danh cho sinh viĂªn khĂ¡c")
+    attendance = Attendance(
+        student_id=student.id,
+        session_id=session.id,
+        method="QR",
+        status=status,
+        device_id=device_id,
+    )
     db.add(attendance)
+    db.flush()
+    add_log(db, current_user, "qr_check_in", "attendance", attendance.id, {"status": status})
     flag_overlapping_attendance(db, student.id, session)
     try:
         db.commit()
@@ -374,6 +681,7 @@ def check_in(
 
 @app.post("/api/face-check-in")
 async def face_check_in(
+    request: Request,
     file: UploadFile = File(...),
     session_id: int = Form(...),
     latitude: float | None = Form(None),
@@ -392,13 +700,25 @@ async def face_check_in(
         raise HTTPException(400, "Chưa hoàn thành thử thách chống giả mạo")
     image_bytes = await file.read()
     thumbnail = create_face_thumbnail(image_bytes)
+    probe_vector = extract_face_vector(image_bytes)
     if not thumbnail:
         raise HTTPException(400, "Chưa phát hiện khuôn mặt rõ trong ảnh")
+    if not probe_vector:
+        raise HTTPException(400, "Could not extract face features")
     if not current_user.student:
         raise HTTPException(400, "Tài khoản sinh viên chưa liên kết hồ sơ")
     session = db.query(LabSession).filter(LabSession.id == session_id).first()
     if not session:
         raise HTTPException(404, "Không tìm thấy buổi học")
+    if session.status != "active":
+        raise HTTPException(400, "Attendance session is closed")
+    if session.class_id:
+        enrolled = db.query(ClassStudent).filter(
+            ClassStudent.class_id == session.class_id,
+            ClassStudent.student_id == current_user.student_id,
+        ).first()
+        if not enrolled:
+            raise HTTPException(403, "Student is not enrolled in this class")
     policy = db.query(SessionPolicy).filter(SessionPolicy.session_id == session.id).first()
     before_minutes = policy.checkin_before_minutes if policy else 0
     after_minutes = policy.checkin_after_minutes if policy else 0
@@ -424,14 +744,31 @@ async def face_check_in(
                 db.commit()
                 raise HTTPException(400, "Bạn đang ở ngoài khu vực phòng Lab")
 
-    current_user.student.face_image_path = thumbnail
+    try:
+        stored_vectors = json.loads(profile.vectors_json or "[]")
+    except json.JSONDecodeError:
+        stored_vectors = []
+    confidence = round(face_similarity(probe_vector, stored_vectors), 4)
+    attendance_status = "present" if confidence >= 0.85 else "pending_review"
+    device_id = request.headers.get("x-device-id")
+    shared_device = flag_shared_device(db, current_user.student.id, session.id, device_id)
+    if shared_device:
+        attendance_status = "pending_review"
     attendance = Attendance(
         student_id=current_user.student.id,
         session_id=session.id,
         method="FACE",
-        status="pending_face",
+        status=attendance_status,
+        confidence_score=confidence,
+        device_id=device_id,
     )
     db.add(attendance)
+    db.flush()
+    add_log(db, current_user, "face_check_in", "attendance", attendance.id, {
+        "status": attendance_status,
+        "confidence_score": confidence,
+        "liveness_passed": liveness_passed,
+    })
     flag_overlapping_attendance(db, current_user.student.id, session)
     try:
         db.commit()
@@ -440,7 +777,8 @@ async def face_check_in(
         raise HTTPException(400, "Bạn đã gửi điểm danh cho buổi học này")
     return {
         "ok": True,
-        "status": "pending_face",
+        "status": attendance_status,
+        "confidence_score": confidence,
         "message": "Đã gửi khuôn mặt, đang chờ giảng viên xác nhận",
         "face_image_path": thumbnail,
     }
@@ -460,7 +798,7 @@ def instructor_scan_face_attendance(
         .filter(
             Attendance.session_id == session_id,
             Attendance.method == "FACE",
-            Attendance.status == "pending_face",
+            Attendance.status.in_(["pending_face", "pending_review"]),
         )
         .all()
     )
@@ -586,6 +924,8 @@ def session_attendances(
             "face_image_path": s.face_image_path,
             "method": a.method,
             "status": a.status,
+            "confidence_score": a.confidence_score,
+            "review_note": a.review_note,
             "checked_at": a.checked_at,
         }
         for a, s in rows
@@ -670,6 +1010,8 @@ def admin_update_session(
     session.room = payload.room
     session.start_time = payload.start_time
     session.end_time = payload.end_time
+    session.class_id = payload.class_id
+    session.subject_id = payload.subject_id
     policy = db.query(SessionPolicy).filter(SessionPolicy.session_id == session.id).first()
     if not policy:
         policy = SessionPolicy(session_id=session.id)
@@ -719,6 +1061,7 @@ def admin_face_profiles(
             "sample_count": profile.sample_count,
             "status": profile.status,
             "updated_at": profile.updated_at,
+            "face_image_path": student.face_image_path,
         }
         for profile, student in rows
     ]
@@ -766,3 +1109,346 @@ def admin_anomalies(
         }
         for alert, student in rows
     ]
+
+
+@app.get("/api/classes")
+def list_classes(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    rows = db.query(ClassRoom).order_by(ClassRoom.code.asc()).all()
+    return [
+        {
+            "id": row.id,
+            "code": row.code,
+            "name": row.name,
+            "teacher_id": row.teacher_id,
+            "active": row.active,
+            "student_count": db.query(ClassStudent).filter(ClassStudent.class_id == row.id).count(),
+        }
+        for row in rows
+    ]
+
+
+@app.post("/api/admin/classes")
+def create_class(
+    payload: ClassCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    row = ClassRoom(**payload.model_dump())
+    db.add(row)
+    try:
+        db.flush()
+        add_log(db, current_user, "class_created", "class", row.id, {"code": row.code})
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Class code already exists")
+    db.refresh(row)
+    return row
+
+
+@app.delete("/api/admin/classes/{class_id}")
+def delete_class(
+    class_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    row = db.query(ClassRoom).filter(ClassRoom.id == class_id).first()
+    if not row:
+        raise HTTPException(404, "Class not found")
+    db.query(ClassStudent).filter(ClassStudent.class_id == class_id).delete()
+    add_log(db, current_user, "class_deleted", "class", class_id, {"code": row.code})
+    db.delete(row)
+    db.commit()
+    return {"ok": True}
+
+
+@app.post("/api/admin/classes/{class_id}/students")
+def add_class_student(
+    class_id: int,
+    payload: ClassStudentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "teacher")),
+):
+    if not db.query(ClassRoom).filter(ClassRoom.id == class_id).first():
+        raise HTTPException(404, "Class not found")
+    if not db.query(Student).filter(Student.id == payload.student_id).first():
+        raise HTTPException(404, "Student not found")
+    row = ClassStudent(class_id=class_id, student_id=payload.student_id)
+    db.add(row)
+    try:
+        db.flush()
+        add_log(db, current_user, "student_added_to_class", "class", class_id, {"student_id": payload.student_id})
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Student is already in this class")
+    return {"ok": True}
+
+
+@app.get("/api/subjects")
+def list_subjects(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    return db.query(Subject).order_by(Subject.code.asc()).all()
+
+
+@app.post("/api/admin/subjects")
+def create_subject(
+    payload: SubjectCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    row = Subject(**payload.model_dump())
+    db.add(row)
+    try:
+        db.flush()
+        add_log(db, current_user, "subject_created", "subject", row.id, {"code": row.code})
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(400, "Subject code already exists")
+    db.refresh(row)
+    return row
+
+
+@app.delete("/api/admin/subjects/{subject_id}")
+def delete_subject(
+    subject_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    row = db.query(Subject).filter(Subject.id == subject_id).first()
+    if not row:
+        raise HTTPException(404, "Subject not found")
+    add_log(db, current_user, "subject_deleted", "subject", subject_id, {"code": row.code})
+    db.delete(row)
+    db.commit()
+    return {"ok": True}
+
+
+@app.patch("/api/sessions/{session_id}/status")
+def update_session_status(
+    session_id: int,
+    payload: SessionStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    if payload.status not in {"active", "closed"}:
+        raise HTTPException(400, "Status must be active or closed")
+    row = db.query(LabSession).filter(LabSession.id == session_id).first()
+    if not row:
+        raise HTTPException(404, "Session not found")
+    row.status = payload.status
+    add_log(db, current_user, "session_status_changed", "attendance_session", row.id, {"status": row.status})
+    db.commit()
+    return {"ok": True, "status": row.status}
+
+
+@app.patch("/api/instructor/attendance/{attendance_id}/review")
+def review_attendance(
+    attendance_id: int,
+    payload: AttendanceReview,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    if payload.status not in {"present", "late", "rejected"}:
+        raise HTTPException(400, "Invalid attendance review status")
+    row = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+    if not row:
+        raise HTTPException(404, "Attendance not found")
+    row.status = payload.status
+    row.review_note = payload.review_note
+    add_log(db, current_user, "attendance_reviewed", "attendance", row.id, {
+        "status": row.status,
+        "note": row.review_note,
+    })
+    db.commit()
+    return {"ok": True, "status": row.status}
+
+
+@app.post("/api/student/appeals")
+def create_appeal(
+    payload: AppealCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("student")),
+):
+    if payload.attendance_id:
+        attendance = db.query(Attendance).filter(
+            Attendance.id == payload.attendance_id,
+            Attendance.student_id == current_user.student_id,
+        ).first()
+        if not attendance:
+            raise HTTPException(404, "Attendance record not found")
+    row = Appeal(
+        student_id=current_user.student_id,
+        attendance_id=payload.attendance_id,
+        session_id=payload.session_id,
+        reason=payload.reason,
+        evidence_name=payload.evidence_name,
+    )
+    db.add(row)
+    db.flush()
+    add_log(db, current_user, "appeal_created", "appeal", row.id)
+    db.commit()
+    return {"ok": True, "id": row.id, "status": row.status}
+
+
+@app.get("/api/student/appeals")
+def student_appeals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("student")),
+):
+    return db.query(Appeal).filter(
+        Appeal.student_id == current_user.student_id,
+    ).order_by(Appeal.created_at.desc()).all()
+
+
+@app.get("/api/instructor/appeals")
+def instructor_appeals(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_role("teacher", "admin")),
+):
+    rows = (
+        db.query(Appeal, Student, LabSession)
+        .join(Student, Appeal.student_id == Student.id)
+        .outerjoin(LabSession, Appeal.session_id == LabSession.id)
+        .order_by(Appeal.created_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id": appeal.id,
+            "student_code": student.student_code,
+            "full_name": student.full_name,
+            "class_name": student.class_name,
+            "attendance_id": appeal.attendance_id,
+            "session_id": appeal.session_id,
+            "session_title": session.title if session else None,
+            "reason": appeal.reason,
+            "evidence_name": appeal.evidence_name,
+            "status": appeal.status,
+            "review_note": appeal.review_note,
+            "created_at": appeal.created_at,
+        }
+        for appeal, student, session in rows
+    ]
+
+
+@app.patch("/api/instructor/appeals/{appeal_id}")
+def review_appeal(
+    appeal_id: int,
+    payload: AppealReview,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("teacher", "admin")),
+):
+    if payload.status not in {"approved", "rejected"}:
+        raise HTTPException(400, "Invalid appeal status")
+    row = db.query(Appeal).filter(Appeal.id == appeal_id).first()
+    if not row:
+        raise HTTPException(404, "Appeal not found")
+    row.status = payload.status
+    row.review_note = payload.review_note
+    row.reviewer_id = current_user.id
+    row.reviewed_at = datetime.utcnow()
+    if payload.status == "approved" and row.attendance_id:
+        attendance = db.query(Attendance).filter(Attendance.id == row.attendance_id).first()
+        if attendance:
+            attendance.status = "present"
+            attendance.review_note = payload.review_note
+    add_log(db, current_user, "appeal_reviewed", "appeal", row.id, {"status": row.status})
+    db.commit()
+    return {"ok": True, "status": row.status}
+
+
+@app.get("/api/reports/attendance")
+def attendance_report(
+    session_id: int | None = None,
+    class_id: int | None = None,
+    subject_id: int | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_role("teacher", "admin")),
+):
+    query = db.query(Attendance, Student, LabSession).join(
+        Student, Attendance.student_id == Student.id,
+    ).join(LabSession, Attendance.session_id == LabSession.id)
+    if session_id:
+        query = query.filter(LabSession.id == session_id)
+    if class_id:
+        query = query.filter(LabSession.class_id == class_id)
+    if subject_id:
+        query = query.filter(LabSession.subject_id == subject_id)
+    if date_from:
+        query = query.filter(LabSession.start_time >= date_from)
+    if date_to:
+        query = query.filter(LabSession.start_time <= date_to)
+    rows = query.order_by(LabSession.start_time.desc(), Student.student_code.asc()).all()
+    records = [
+        {
+            "attendance_id": attendance.id,
+            "session_id": session.id,
+            "session_title": session.title,
+            "class_id": session.class_id,
+            "subject_id": session.subject_id,
+            "student_code": student.student_code,
+            "full_name": student.full_name,
+            "class_name": student.class_name,
+            "status": attendance.status,
+            "method": attendance.method,
+            "confidence_score": attendance.confidence_score,
+            "checked_at": attendance.checked_at,
+        }
+        for attendance, student, session in rows
+    ]
+    if session_id:
+        selected_session = db.query(LabSession).filter(LabSession.id == session_id).first()
+        if selected_session and selected_session.class_id:
+            present_student_ids = {attendance.student_id for attendance, _, _ in rows}
+            class_rows = (
+                db.query(Student)
+                .join(ClassStudent, ClassStudent.student_id == Student.id)
+                .filter(ClassStudent.class_id == selected_session.class_id)
+                .order_by(Student.student_code.asc())
+                .all()
+            )
+            for student in class_rows:
+                if student.id not in present_student_ids:
+                    records.append({
+                        "attendance_id": f"absent-{student.id}",
+                        "session_id": selected_session.id,
+                        "session_title": selected_session.title,
+                        "class_id": selected_session.class_id,
+                        "subject_id": selected_session.subject_id,
+                        "student_code": student.student_code,
+                        "full_name": student.full_name,
+                        "class_name": student.class_name,
+                        "status": "absent",
+                        "method": "",
+                        "confidence_score": None,
+                        "checked_at": None,
+                    })
+    summary = {
+        "present": sum(row["status"] == "present" for row in records),
+        "late": sum(row["status"] == "late" for row in records),
+        "pending_review": sum(row["status"] in {"pending_review", "pending_face"} for row in records),
+        "rejected": sum(row["status"] == "rejected" for row in records),
+        "absent": sum(row["status"] == "absent" for row in records),
+        "total": len(records),
+    }
+    return {"summary": summary, "records": records}
+
+
+@app.get("/api/admin/logs")
+def admin_logs(
+    limit: int = 200,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_role("admin")),
+):
+    return db.query(AttendanceLog).order_by(
+        AttendanceLog.created_at.desc(),
+    ).limit(min(max(limit, 1), 1000)).all()

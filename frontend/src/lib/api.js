@@ -24,8 +24,14 @@ export function getStoredUser() {
 
 export function authHeaders(extra = {}) {
   const token = getToken()
+  let deviceId = localStorage.getItem('vinlab-device-id')
+  if (!deviceId) {
+    deviceId = crypto.randomUUID?.() || `web-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    localStorage.setItem('vinlab-device-id', deviceId)
+  }
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    'X-Device-ID': deviceId,
     ...extra,
   }
 }

@@ -23,6 +23,9 @@ class LoginRequest(BaseModel):
 class UserOut(BaseModel):
     id: int
     username: str
+    email: str | None = None
+    email: str | None = None
+    email: str | None = None
     full_name: str
     role: str
     student_id: int | None = None
@@ -38,6 +41,8 @@ class SessionCreate(BaseModel):
     room: str
     start_time: datetime
     end_time: datetime
+    class_id: int | None = None
+    subject_id: int | None = None
 
 class SessionOut(BaseModel):
     id: int
@@ -46,6 +51,10 @@ class SessionOut(BaseModel):
     start_time: datetime
     end_time: datetime
     qr_token: str
+    class_id: int | None = None
+    subject_id: int | None = None
+    teacher_id: int | None = None
+    status: str = "active"
     class Config:
         from_attributes = True
 
@@ -88,6 +97,8 @@ class SessionUpdate(BaseModel):
     location_id: int | None = None
     checkin_before_minutes: int = 15
     checkin_after_minutes: int = 10
+    class_id: int | None = None
+    subject_id: int | None = None
 
 class AttendanceOut(BaseModel):
     id: int
@@ -95,6 +106,37 @@ class AttendanceOut(BaseModel):
     session_id: int
     method: str
     status: str
+    confidence_score: float | None = None
     checked_at: datetime
     class Config:
         from_attributes = True
+
+class ClassCreate(BaseModel):
+    code: str
+    name: str
+    teacher_id: int | None = None
+
+class SubjectCreate(BaseModel):
+    code: str
+    name: str
+    credits: int = 3
+
+class ClassStudentCreate(BaseModel):
+    student_id: int
+
+class SessionStatusUpdate(BaseModel):
+    status: str
+
+class AttendanceReview(BaseModel):
+    status: str
+    review_note: str | None = None
+
+class AppealCreate(BaseModel):
+    attendance_id: int | None = None
+    session_id: int | None = None
+    reason: str
+    evidence_name: str | None = None
+
+class AppealReview(BaseModel):
+    status: str
+    review_note: str | None = None

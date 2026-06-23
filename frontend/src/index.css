@@ -232,6 +232,99 @@ button {
   animation: camera-spin 1s linear infinite;
 }
 
+.page-error {
+  @apply flex items-start gap-4 border-red-100 bg-red-50/70;
+}
+
+.page-error-icon {
+  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600;
+}
+
+.page-error h3 {
+  @apply mt-1 text-xl font-black text-slate-950;
+}
+
+.page-error > div:last-child > p:not(.section-kicker) {
+  @apply mt-2 text-sm leading-relaxed text-slate-600;
+}
+
+.root-error {
+  @apply flex min-h-screen items-center justify-center bg-slate-50 p-5;
+}
+
+.root-error-panel {
+  @apply w-full max-w-lg rounded-3xl border border-red-100 bg-white p-8 text-center shadow-xl;
+}
+
+.root-error-panel > svg {
+  @apply mx-auto text-red-600;
+}
+
+.root-error-panel h1 {
+  @apply mt-4 text-2xl font-black text-slate-950;
+}
+
+.root-error-panel p {
+  @apply my-3 break-words text-sm leading-relaxed text-slate-600;
+}
+
+.face-setup-page {
+  @apply min-h-screen bg-slate-50;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(239, 68, 68, 0.1), transparent 25rem),
+    radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.1), transparent 26rem),
+    #f7f8fc;
+}
+
+.face-setup-header {
+  @apply mx-auto flex max-w-6xl items-center justify-between px-5 py-5;
+}
+
+.face-setup-header strong {
+  @apply block text-lg font-black tracking-wider text-slate-950;
+}
+
+.face-setup-header p {
+  @apply text-xs font-semibold text-slate-500;
+}
+
+.face-setup-layout {
+  @apply mx-auto grid max-w-6xl gap-6 px-5 pb-12 pt-4 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:pt-10;
+}
+
+.face-setup-intro {
+  @apply py-4;
+}
+
+.face-setup-icon {
+  @apply mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-200;
+}
+
+.face-setup-intro h1 {
+  @apply mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl;
+}
+
+.face-setup-intro > p:not(.section-kicker) {
+  @apply mt-4 text-sm leading-relaxed text-slate-600 sm:text-base;
+}
+
+.face-setup-steps {
+  @apply mt-7 grid gap-3;
+}
+
+.face-setup-steps span {
+  @apply flex items-center gap-3 text-sm font-bold text-slate-700;
+}
+
+.face-setup-steps b {
+  @apply flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600;
+}
+
+.face-enrollment-required {
+  @apply border-red-100;
+  box-shadow: 0 24px 70px rgba(44, 54, 83, 0.13);
+}
+
 .login-page {
   @apply relative grid min-h-screen overflow-hidden bg-slate-50 lg:grid-cols-[1.05fr_0.95fr];
 }
@@ -451,7 +544,7 @@ button {
 }
 
 .teacher-student-row {
-  @apply grid items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition hover:border-red-100 hover:bg-red-50/20 md:grid-cols-[auto_minmax(170px,1fr)_minmax(150px,0.8fr)_auto];
+  @apply grid items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition hover:border-red-100 hover:bg-red-50/20 md:grid-cols-[auto_minmax(160px,1fr)_minmax(140px,0.8fr)_auto_auto_auto];
 }
 
 .teacher-student-info {
@@ -506,75 +599,54 @@ button {
   @apply bg-red-50 text-red-600 hover:bg-red-100;
 }
 
-.face-scan-button {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-3 text-sm font-extrabold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60;
-  box-shadow: 0 12px 25px rgba(124, 58, 237, 0.22);
+.bface-thumbnail {
+  @apply flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-300;
 }
 
-.teacher-face-scanner {
-  @apply grid gap-5 overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-fuchsia-600 to-rose-500 p-5 text-white lg:grid-cols-[0.8fr_1.2fr] lg:p-7;
-  box-shadow: 0 24px 60px rgba(124, 58, 237, 0.24);
-}
-
-.teacher-face-copy {
-  @apply flex min-w-0 flex-col justify-center;
-}
-
-.teacher-face-copy .section-kicker {
-  @apply mt-4 text-violet-100;
-}
-
-.teacher-face-copy h3 {
-  @apply mt-1 text-2xl font-black tracking-tight sm:text-3xl;
-}
-
-.teacher-face-copy > p:not(.section-kicker) {
-  @apply mt-3 text-sm leading-relaxed text-white/75;
-}
-
-.teacher-face-icon {
-  @apply flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur;
-}
-
-.teacher-face-counts {
-  @apply mt-5 flex flex-wrap gap-2;
-}
-
-.teacher-face-counts span {
-  @apply inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-extrabold;
-}
-
-.teacher-face-actions {
-  @apply mt-5 flex flex-wrap gap-3;
-}
-
-.teacher-face-actions .face-scan-button {
-  @apply bg-white text-violet-700;
-  box-shadow: 0 12px 30px rgba(30, 41, 59, 0.18);
-}
-
-.teacher-face-actions .btn-secondary {
-  @apply border-white/20 bg-white/10 text-white hover:border-white/30 hover:bg-white/20 hover:text-white;
-}
-
-.teacher-camera-view {
-  @apply relative aspect-video min-h-56 overflow-hidden rounded-[1.5rem] bg-slate-950;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-}
-
-.teacher-camera-view video {
+.bface-thumbnail img {
   @apply h-full w-full object-cover;
 }
 
-.teacher-camera-placeholder {
-  @apply absolute inset-0 flex flex-col items-center justify-center gap-3 text-sm font-bold text-white/50;
+.attendance-review-actions {
+  @apply flex items-center gap-1;
 }
 
-.teacher-camera-grid {
-  @apply pointer-events-none absolute inset-[10%] rounded-2xl border-2 border-white/70;
-  background-image:
-    linear-gradient(to right, transparent 49.5%, rgba(255,255,255,.25) 50%, transparent 50.5%),
-    linear-gradient(to bottom, transparent 49.5%, rgba(255,255,255,.25) 50%, transparent 50.5%);
+.attendance-review-actions button {
+  @apply flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-red-50 hover:text-red-600;
+}
+
+.report-table-wrap {
+  @apply overflow-x-auto rounded-2xl border border-slate-100;
+}
+
+.report-table {
+  @apply min-w-[850px] w-full border-collapse bg-white text-left text-sm;
+}
+
+.report-table th {
+  @apply bg-slate-50 px-4 py-3 text-xs font-black uppercase text-slate-500;
+}
+
+.report-table td {
+  @apply border-t border-slate-100 px-4 py-3 text-slate-600;
+}
+
+.report-table td strong,
+.report-table td small {
+  @apply block;
+}
+
+.report-table td strong {
+  @apply text-slate-900;
+}
+
+.report-table td small {
+  @apply mt-1 text-xs text-slate-400;
+}
+
+.face-scan-button {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-3 text-sm font-extrabold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60;
+  box-shadow: 0 12px 25px rgba(124, 58, 237, 0.22);
 }
 
 .schedule-row {
@@ -677,6 +749,14 @@ button {
 
 .admin-list-row > div {
   @apply min-w-0 flex-1;
+}
+
+.admin-list-row > .admin-face-photo {
+  @apply flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-300;
+}
+
+.admin-face-photo img {
+  @apply h-full w-full object-cover;
 }
 
 .admin-list-row p {
@@ -828,6 +908,14 @@ button {
   @apply rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700;
 }
 
+.result-message.enrollment-error {
+  @apply flex flex-col items-start gap-3 border-red-100 bg-red-50 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.enrollment-retry-button {
+  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-red-500;
+}
+
 .capture-preview {
   @apply overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 p-2;
 }
@@ -971,7 +1059,7 @@ button {
   @apply block text-2xl font-black leading-none;
 }
 
-.timemark-live span {
+.timemark-live > div:first-child span {
   @apply mt-1 block text-xs font-bold text-red-300;
 }
 
@@ -980,7 +1068,15 @@ button {
 }
 
 .timemark-live b {
-  @apply flex items-center justify-end gap-1 truncate text-xs;
+  @apply flex items-start justify-end gap-1 text-xs leading-tight;
+}
+
+.timemark-live b svg {
+  @apply mt-0.5 shrink-0;
+}
+
+.timemark-live b span {
+  @apply line-clamp-2;
 }
 
 .timemark-live small {
@@ -1032,16 +1128,50 @@ button {
 }
 
 .mobile-nav {
-  @apply fixed bottom-3 left-3 right-3 z-50 grid grid-cols-4 rounded-[1.5rem] border border-white/80 bg-white/90 p-2 backdrop-blur-xl;
-  box-shadow: 0 18px 50px rgba(30, 41, 59, 0.2);
+  @apply fixed bottom-0 left-0 right-0 z-50 grid rounded-t-[1.75rem] border-x border-t border-white/90 bg-white/95 p-2 backdrop-blur-xl;
+  width: 100%;
+  box-shadow:
+    0 -12px 38px rgba(30, 41, 59, 0.14),
+    0 -2px 8px rgba(30, 41, 59, 0.06);
 }
 
 .mobile-nav-item {
-  @apply flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-bold text-slate-400 transition;
+  @apply relative flex min-w-0 items-center justify-center gap-2 rounded-[1.35rem] px-3 py-3 text-xs font-extrabold text-slate-400 transition duration-200;
+}
+
+.mobile-nav-item svg {
+  @apply shrink-0 transition duration-200;
+}
+
+.mobile-nav-item span {
+  @apply truncate;
+}
+
+.mobile-nav-item:hover {
+  @apply bg-slate-50 text-slate-700;
 }
 
 .mobile-nav-active {
-  @apply bg-red-50 text-red-600;
+  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white;
+  box-shadow: 0 10px 24px rgba(225, 29, 72, 0.24);
+}
+
+.mobile-nav-active:hover {
+  @apply text-white;
+}
+
+.mobile-nav-active svg {
+  transform: scale(1.08);
+}
+
+.page-content-stage {
+  min-height: calc(100vh - 11rem);
+}
+
+.mobile-content-spacer {
+  height: 14rem;
+  width: 100%;
+  pointer-events: none;
 }
 
 @keyframes pulse-dot {
@@ -1054,6 +1184,18 @@ button {
 }
 
 @media (max-width: 640px) {
+  .mobile-nav {
+    @apply rounded-t-[1.5rem] p-1.5;
+  }
+
+  .mobile-nav-item {
+    @apply flex-col gap-1 rounded-[1.15rem] px-1.5 py-2 text-[10px];
+  }
+
+  .mobile-content-spacer {
+    height: 12rem;
+  }
+
   .hero-panel {
     @apply rounded-[1.5rem] px-5 py-7;
   }
@@ -1081,16 +1223,21 @@ button {
   }
 
   .teacher-student-row {
-    @apply grid-cols-[auto_minmax(0,1fr)];
+    @apply grid-cols-[auto_minmax(0,1fr)_auto];
   }
 
   .teacher-attendance-detail,
-  .attendance-action {
-    @apply col-span-2;
+  .attendance-action,
+  .attendance-review-actions {
+    @apply col-span-3;
   }
 
   .teacher-attendance-detail {
     @apply pl-14;
+  }
+
+  .bface-thumbnail {
+    @apply col-start-3 row-start-1;
   }
 }
 
@@ -1103,4 +1250,1011 @@ button {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* --- Welcome Landing Page Styles --- */
+.welcome-container {
+  min-height: 100vh;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.05), transparent 40rem),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05), transparent 40rem),
+    #f8fafc;
+}
+
+.welcome-header {
+  @apply sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-md px-6 py-4;
+}
+
+.welcome-nav {
+  @apply flex max-w-7xl mx-auto items-center justify-between;
+}
+
+.welcome-nav-links {
+  @apply hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600;
+}
+
+.welcome-nav-links a {
+  @apply transition hover:text-red-600;
+}
+
+.welcome-nav-actions {
+  @apply flex items-center gap-4;
+}
+
+.welcome-hero {
+  @apply max-w-7xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center;
+}
+
+.welcome-hero-content {
+  @apply space-y-6;
+}
+
+.welcome-eyebrow {
+  @apply inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-black tracking-wide text-red-600 uppercase;
+}
+
+.welcome-hero-content h1 {
+  @apply text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-none;
+}
+
+.welcome-hero-content h1 span {
+  @apply bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent;
+}
+
+.welcome-hero-content p {
+  @apply text-lg text-slate-600 leading-relaxed max-w-lg;
+}
+
+.welcome-hero-actions {
+  @apply flex flex-wrap gap-4 pt-2;
+}
+
+/* Welcome Button styles */
+.welcome-btn {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition duration-200 cursor-pointer;
+}
+.welcome-btn-primary {
+  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-500/20 hover:scale-[1.02];
+}
+.welcome-btn-secondary {
+  @apply border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300;
+}
+
+/* Hero Visual Animation */
+.welcome-hero-visual {
+  @apply relative rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-100 flex flex-col items-center justify-center overflow-hidden aspect-[4/3] max-w-lg mx-auto w-full;
+}
+
+.welcome-scan-box {
+  @apply relative w-full h-full rounded-2xl bg-slate-950 overflow-hidden flex flex-col items-center justify-center;
+}
+
+.welcome-scan-avatar {
+  @apply w-40 h-40 rounded-full border-4 border-slate-800 object-cover opacity-80;
+}
+
+.welcome-scan-grid {
+  @apply absolute inset-0 opacity-20 pointer-events-none;
+  background-size: 20px 20px;
+  background-image: 
+    linear-gradient(to right, #ef4444 1px, transparent 1px),
+    linear-gradient(to bottom, #ef4444 1px, transparent 1px);
+}
+
+.welcome-scan-line {
+  @apply absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_8px_#ef4444] opacity-80 pointer-events-none;
+  animation: scanline 3s infinite ease-in-out;
+}
+
+.welcome-scan-status {
+  @apply absolute bottom-4 left-4 right-4 bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-[11px] text-white backdrop-blur;
+}
+
+.welcome-stats {
+  @apply max-w-7xl mx-auto px-6 py-12 border-y border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-8 text-center;
+}
+
+.welcome-stat strong {
+  @apply block text-3xl md:text-4xl font-black text-slate-900;
+}
+.welcome-stat span {
+  @apply text-xs font-semibold text-slate-500 uppercase tracking-wider;
+}
+
+.welcome-section {
+  @apply max-w-7xl mx-auto px-6 py-20 md:py-28;
+}
+
+.welcome-section-header {
+  @apply text-center max-w-3xl mx-auto mb-16 space-y-4;
+}
+
+.welcome-section-header h2 {
+  @apply text-3xl md:text-4xl font-black text-slate-900 tracking-tight;
+}
+
+.welcome-section-header h2 span {
+  @apply bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent;
+}
+
+.welcome-section-header p {
+  @apply text-base text-slate-600 leading-relaxed;
+}
+
+.welcome-compare-grid {
+  @apply grid md:grid-cols-2 gap-8 max-w-4xl mx-auto;
+}
+
+.welcome-compare-card {
+  @apply rounded-3xl border border-slate-100 bg-white p-8 shadow-xl shadow-slate-100/50 space-y-6 transition hover:shadow-2xl hover:shadow-slate-100;
+}
+
+.welcome-compare-card-active {
+  @apply border-red-100 bg-gradient-to-b from-red-50/50 to-white;
+}
+
+.welcome-compare-card h3 {
+  @apply text-xl font-extrabold text-slate-900;
+}
+
+.welcome-compare-card-active h3 {
+  @apply text-red-700;
+}
+
+.welcome-compare-list {
+  @apply space-y-4;
+}
+
+.welcome-compare-list li {
+  @apply flex items-start gap-3 text-sm text-slate-600 leading-relaxed;
+}
+
+.welcome-compare-list li span {
+  @apply shrink-0 mt-0.5;
+}
+
+.welcome-features-grid {
+  @apply grid md:grid-cols-3 gap-8;
+}
+
+.welcome-feature-card {
+  @apply rounded-3xl border border-slate-100 bg-white p-8 space-y-4 text-center transition hover:scale-[1.02] hover:shadow-xl hover:shadow-slate-100;
+}
+
+.welcome-feature-icon {
+  @apply mx-auto w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center;
+}
+
+.welcome-feature-card h3 {
+  @apply text-lg font-bold text-slate-900;
+}
+
+.welcome-feature-card p {
+  @apply text-sm text-slate-600 leading-relaxed;
+}
+
+.welcome-timeline-section {
+  @apply bg-slate-900 text-white rounded-[2rem] px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center;
+}
+
+.welcome-timeline-copy {
+  @apply space-y-6;
+}
+
+.welcome-timeline-copy h2 {
+  @apply text-3xl md:text-4xl font-black tracking-tight leading-tight;
+}
+
+.welcome-timeline-copy h2 span {
+  @apply text-red-500;
+}
+
+.welcome-timeline-copy p {
+  @apply text-slate-400 text-base leading-relaxed;
+}
+
+.welcome-timeline-mock {
+  @apply border border-slate-800 bg-slate-950/80 rounded-2xl p-6 space-y-4 max-w-md mx-auto w-full;
+}
+
+.welcome-timeline-steps {
+  @apply space-y-4 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800;
+}
+
+.welcome-timeline-step {
+  @apply flex gap-4 text-sm relative z-10;
+}
+
+.welcome-timeline-badge {
+  @apply w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs shrink-0 transition;
+}
+
+.welcome-timeline-active .welcome-timeline-badge {
+  @apply bg-red-600 border-red-500 text-white;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.welcome-timeline-completed .welcome-timeline-badge {
+  @apply bg-emerald-600 border-emerald-500 text-white;
+}
+
+.welcome-timeline-step-content {
+  @apply flex flex-col justify-center;
+}
+
+.welcome-timeline-step-content span {
+  @apply font-bold text-slate-200;
+}
+
+.welcome-timeline-step-content small {
+  @apply text-xs text-slate-500;
+}
+
+.welcome-timeline-active .welcome-timeline-step-content span {
+  @apply text-white;
+}
+
+.welcome-cta-section {
+  @apply max-w-5xl mx-auto px-6 py-20 text-center space-y-8 rounded-[2.5rem] bg-gradient-to-r from-red-500 via-red-600 to-rose-700 text-white shadow-2xl shadow-red-500/20 my-12 relative overflow-hidden;
+}
+
+.welcome-cta-section::before {
+  content: "";
+  @apply absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/5 blur-3xl pointer-events-none;
+}
+
+.welcome-cta-section h2 {
+  @apply text-3xl md:text-5xl font-black tracking-tight leading-none;
+}
+
+.welcome-cta-section p {
+  @apply text-red-50 text-base md:text-lg max-w-xl mx-auto;
+}
+
+.welcome-footer {
+  @apply border-t border-slate-100 bg-white py-12 px-6;
+}
+
+.welcome-footer-grid {
+  @apply max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm;
+}
+
+.welcome-footer-brand {
+  @apply col-span-2 md:col-span-1 space-y-4;
+}
+
+.welcome-footer-brand p {
+  @apply text-xs text-slate-500 leading-relaxed;
+}
+
+.welcome-footer-links h3 {
+  @apply font-extrabold text-slate-900 mb-4;
+}
+
+.welcome-footer-links ul {
+  @apply space-y-2 text-slate-600;
+}
+
+.welcome-footer-links ul a {
+  @apply hover:text-red-600 transition;
+}
+
+.welcome-copyright {
+  @apply max-w-7xl mx-auto text-center border-t border-slate-50 pt-8 mt-8 text-xs text-slate-400;
+}
+
+/* Floating animation for badge */
+@keyframes scanline {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+
+/* --- Socratic Workspace Styles --- */
+.socratic-navbar {
+  @apply flex flex-wrap gap-2 border-b border-slate-100 pb-3 mb-6;
+}
+
+.socratic-nav-btn {
+  @apply flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 cursor-pointer;
+}
+
+.socratic-nav-btn-active {
+  @apply bg-red-50 text-red-600;
+}
+
+.socratic-hero-greet {
+  @apply flex flex-col md:flex-row items-center gap-6 rounded-3xl border border-white bg-gradient-to-r from-red-600 to-rose-500 p-6 text-white shadow-xl shadow-red-500/10 mb-6 relative overflow-hidden;
+}
+
+.socratic-hero-greet::before {
+  content: "";
+  @apply absolute -right-16 -top-16 h-36 w-36 rounded-full bg-white/10 blur-2xl pointer-events-none;
+}
+
+.socratic-hero-greet-text {
+  @apply space-y-2 flex-1;
+}
+
+.socratic-hero-greet-text h2 {
+  @apply text-2xl font-black tracking-tight leading-none text-white;
+}
+
+.socratic-hero-greet-text p {
+  @apply text-red-100 text-sm max-w-xl;
+}
+
+.socratic-xp-bar {
+  @apply w-full bg-white/20 rounded-full h-3 mt-3 relative overflow-hidden;
+}
+
+.socratic-xp-progress {
+  @apply bg-white h-full rounded-full transition-all duration-500;
+}
+
+.socratic-metrics-grid {
+  @apply grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6;
+}
+
+.socratic-metric-card {
+  @apply rounded-2xl border border-slate-100 bg-white p-4 shadow-sm flex items-center gap-4 transition hover:shadow-md;
+}
+
+.socratic-metric-icon {
+  @apply w-10 h-10 rounded-xl flex items-center justify-center text-red-600 bg-red-50 font-black;
+}
+
+.socratic-metric-info {
+  @apply flex flex-col;
+}
+
+.socratic-metric-info strong {
+  @apply text-lg font-black text-slate-800 leading-none;
+}
+
+.socratic-metric-info span {
+  @apply text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1;
+}
+
+.socratic-card-grid {
+  @apply grid lg:grid-cols-3 gap-6;
+}
+
+.socratic-card-col-2 {
+  @apply lg:col-span-2 space-y-6;
+}
+
+.socratic-card-title {
+  @apply text-sm font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2;
+}
+
+.socratic-task-row {
+  @apply flex items-center justify-between p-3 rounded-xl border border-slate-50 bg-white transition hover:bg-slate-50/50;
+}
+
+.socratic-task-left {
+  @apply flex items-start gap-3;
+}
+
+.socratic-task-check {
+  @apply mt-0.5 shrink-0;
+}
+
+.socratic-task-text {
+  @apply flex flex-col;
+}
+
+.socratic-task-text strong {
+  @apply text-xs font-bold text-slate-700 leading-none;
+}
+
+.socratic-task-text small {
+  @apply text-[10px] text-slate-400 mt-1;
+}
+
+.socratic-task-xp {
+  @apply rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600;
+}
+
+/* Chat view */
+.socratic-chat-layout {
+  @apply grid lg:grid-cols-[240px_minmax(0,1fr)] gap-6 rounded-3xl border border-slate-100 bg-white shadow-xl shadow-slate-100/50 overflow-hidden h-[620px];
+}
+
+.socratic-chat-sidebar {
+  @apply border-r border-slate-100 p-4 space-y-3 bg-slate-50/30 overflow-y-auto hidden lg:block;
+}
+
+.socratic-chat-sidebar-title {
+  @apply text-[10px] font-black uppercase tracking-widest text-slate-400 px-2 mb-2;
+}
+
+.socratic-chat-topic-btn {
+  @apply w-full text-left rounded-xl p-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 flex items-center gap-2 cursor-pointer;
+}
+
+.socratic-chat-topic-btn-active {
+  @apply bg-red-50 text-red-600;
+}
+
+.socratic-chat-area {
+  @apply flex flex-col h-full overflow-hidden;
+}
+
+.socratic-chat-header {
+  @apply border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-white;
+}
+
+.socratic-chat-header-title h3 {
+  @apply text-sm font-black text-slate-800;
+}
+
+.socratic-chat-header-title p {
+  @apply text-[10px] font-bold text-slate-400 uppercase tracking-wider;
+}
+
+.socratic-chat-messages {
+  @apply flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/20;
+}
+
+.socratic-chat-bubble {
+  @apply max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed shadow-sm;
+}
+
+.socratic-chat-bubble-bot {
+  @apply bg-white border border-slate-100 text-slate-700 self-start mr-auto rounded-tl-none;
+}
+
+.socratic-chat-bubble-user {
+  @apply bg-gradient-to-br from-red-600 to-rose-500 text-white self-end ml-auto rounded-tr-none shadow-red-500/5;
+}
+
+.socratic-chat-pills {
+  @apply flex flex-wrap gap-2 px-6 py-2 border-t border-slate-50 bg-white;
+}
+
+.socratic-chat-pill-btn {
+  @apply rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-600 transition hover:bg-slate-100 hover:border-slate-300 cursor-pointer;
+}
+
+.socratic-chat-footer {
+  @apply p-4 border-t border-slate-100 bg-white flex gap-3 items-center;
+}
+
+.socratic-chat-input {
+  @apply flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs focus:outline-none focus:border-red-500 focus:bg-white;
+}
+
+/* Roadmap Grid */
+.socratic-roadmap-grid {
+  @apply grid md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.socratic-roadmap-hint {
+  @apply mt-1 text-xs text-slate-400;
+}
+
+.socratic-roadmap-card {
+  @apply rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-3 relative transition text-left w-full;
+}
+
+.socratic-roadmap-card:not(:disabled) {
+  @apply cursor-pointer hover:-translate-y-1 hover:shadow-lg hover:border-slate-200;
+}
+
+.socratic-roadmap-card:focus-visible {
+  @apply outline-none ring-2 ring-red-400 ring-offset-2;
+}
+
+.socratic-roadmap-card-active {
+  @apply border-red-200 shadow-lg shadow-red-500/5;
+}
+
+.socratic-roadmap-card-locked {
+  @apply opacity-65 bg-slate-50/50 cursor-not-allowed;
+}
+
+.socratic-roadmap-card-top {
+  @apply flex items-center justify-between gap-3;
+}
+
+.socratic-roadmap-state {
+  @apply rounded-full bg-slate-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400;
+}
+
+.socratic-roadmap-card-completed .socratic-roadmap-state {
+  @apply bg-emerald-50 text-emerald-600;
+}
+
+.socratic-roadmap-card-active .socratic-roadmap-state {
+  @apply bg-red-50 text-red-600;
+}
+
+.socratic-roadmap-badge {
+  @apply inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-slate-400 bg-slate-50 border border-slate-100;
+}
+
+.socratic-roadmap-card-active .socratic-roadmap-badge {
+  @apply bg-red-50 text-red-600 border-red-100;
+}
+
+.socratic-roadmap-card-completed .socratic-roadmap-badge {
+  @apply bg-emerald-50 text-emerald-600 border-emerald-100;
+}
+
+.socratic-roadmap-card h3 {
+  @apply text-sm font-bold text-slate-800;
+}
+
+.socratic-roadmap-card p {
+  @apply text-xs text-slate-500 leading-relaxed;
+}
+
+.socratic-roadmap-open {
+  @apply inline-flex items-center gap-1 pt-1 text-[11px] font-black text-red-600;
+}
+
+.socratic-lesson-detail {
+  @apply overflow-hidden;
+}
+
+.socratic-lesson-back {
+  @apply mb-5 inline-flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 cursor-pointer;
+}
+
+.socratic-lesson-heading {
+  @apply flex flex-col gap-5 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white md:flex-row md:items-center md:justify-between;
+}
+
+.socratic-lesson-kicker {
+  @apply text-[10px] font-black uppercase tracking-[0.2em] text-rose-300;
+}
+
+.socratic-lesson-heading h2 {
+  @apply mt-2 text-xl font-black md:text-2xl;
+}
+
+.socratic-lesson-heading p {
+  @apply mt-2 max-w-3xl text-xs leading-relaxed text-slate-300;
+}
+
+.socratic-lesson-duration {
+  @apply inline-flex shrink-0 items-center gap-2 self-start rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs font-bold md:self-auto;
+}
+
+.socratic-lesson-resources {
+  @apply mt-6 grid gap-4 lg:grid-cols-3;
+}
+
+.socratic-resource-card {
+  @apply flex min-h-[260px] flex-col rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg;
+}
+
+.socratic-resource-icon {
+  @apply mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl;
+}
+
+.socratic-resource-card-slide .socratic-resource-icon {
+  @apply bg-blue-50 text-blue-600;
+}
+
+.socratic-resource-card-lab .socratic-resource-icon {
+  @apply bg-amber-50 text-amber-600;
+}
+
+.socratic-resource-card-quiz .socratic-resource-icon {
+  @apply bg-rose-50 text-rose-600;
+}
+
+.socratic-resource-meta {
+  @apply text-[9px] font-black uppercase tracking-[0.16em] text-slate-400;
+}
+
+.socratic-resource-card h3 {
+  @apply mt-2 text-sm font-black text-slate-800;
+}
+
+.socratic-resource-card p {
+  @apply mt-2 flex-1 text-xs leading-relaxed text-slate-500;
+}
+
+.socratic-resource-action {
+  @apply mt-5 inline-flex w-full items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-xs font-black text-slate-700 transition hover:bg-slate-900 hover:text-white cursor-pointer;
+}
+
+.socratic-resource-action:disabled {
+  @apply cursor-not-allowed bg-slate-50 text-slate-300 hover:bg-slate-50 hover:text-slate-300;
+}
+
+.socratic-resource-panel {
+  @apply mt-6 rounded-3xl border border-slate-100 bg-slate-50/60 p-5 md:p-6;
+}
+
+.socratic-resource-panel-heading {
+  @apply flex items-center gap-3;
+}
+
+.socratic-resource-panel-heading .socratic-resource-icon {
+  @apply mb-0 bg-blue-50 text-blue-600;
+}
+
+.socratic-resource-panel-heading .socratic-resource-icon-lab {
+  @apply bg-amber-50 text-amber-600;
+}
+
+.socratic-resource-panel-heading span {
+  @apply text-[9px] font-black uppercase tracking-[0.16em] text-slate-400;
+}
+
+.socratic-resource-panel-heading h3 {
+  @apply mt-1 text-sm font-black text-slate-800;
+}
+
+.socratic-slide-outline {
+  @apply mt-5 grid gap-3 md:grid-cols-2;
+}
+
+.socratic-slide-outline div {
+  @apply flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-xs font-bold text-slate-700;
+}
+
+.socratic-slide-outline b {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[10px] text-blue-600;
+}
+
+.socratic-pdf-state {
+  @apply mt-5 rounded-2xl border border-slate-100 bg-white p-8 text-center text-xs font-bold text-slate-500;
+}
+
+.socratic-pdf-viewer {
+  @apply mt-5 h-[70vh] min-h-[520px] w-full rounded-2xl border border-slate-200 bg-white;
+}
+
+/* Floating slide assistant */
+.slide-assistant {
+  @apply fixed right-5 z-[80] flex flex-col items-end gap-3;
+  bottom: 6.5rem;
+}
+
+.slide-assistant-panel {
+  @apply flex h-[490px] w-[370px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  animation: slide-assistant-in 180ms ease-out;
+}
+
+.slide-assistant-header {
+  @apply flex items-center gap-3 bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3.5 text-white;
+}
+
+.slide-assistant-avatar {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-500 text-white;
+}
+
+.slide-assistant-header > div:nth-child(2) {
+  @apply min-w-0 flex-1;
+}
+
+.slide-assistant-header strong,
+.slide-assistant-header span {
+  @apply block truncate;
+}
+
+.slide-assistant-header strong {
+  @apply text-sm font-black;
+}
+
+.slide-assistant-header span {
+  @apply mt-0.5 text-[10px] font-semibold text-slate-300;
+}
+
+.slide-assistant-header > button {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/10 hover:text-white cursor-pointer;
+}
+
+.slide-assistant-messages {
+  @apply flex-1 space-y-3 overflow-y-auto bg-slate-50/70 p-4;
+}
+
+.slide-assistant-message {
+  @apply w-fit max-w-[88%] rounded-2xl px-3.5 py-3 text-xs leading-relaxed;
+}
+
+.slide-assistant-message-bot {
+  @apply mr-auto rounded-tl-md border border-slate-100 bg-white text-slate-700 shadow-sm;
+}
+
+.slide-assistant-message-user {
+  @apply ml-auto rounded-tr-md bg-gradient-to-br from-red-600 to-rose-500 text-white shadow-sm;
+}
+
+.slide-assistant-typing {
+  @apply flex items-center gap-1.5 py-3.5;
+}
+
+.slide-assistant-typing span {
+  @apply h-1.5 w-1.5 rounded-full bg-slate-400;
+  animation: slide-assistant-dot 1s infinite ease-in-out;
+}
+
+.slide-assistant-typing span:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.slide-assistant-typing span:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.slide-assistant-suggestions {
+  @apply flex gap-2 overflow-x-auto border-t border-slate-100 bg-white px-3 py-2;
+}
+
+.slide-assistant-suggestions button {
+  @apply shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 cursor-pointer;
+}
+
+.slide-assistant-input {
+  @apply flex items-center gap-2 border-t border-slate-100 bg-white p-3;
+}
+
+.slide-assistant-input input {
+  @apply min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-red-400 focus:bg-white;
+}
+
+.slide-assistant-input button {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-500 text-white shadow-md shadow-red-200 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer;
+}
+
+.slide-assistant-toggle {
+  @apply flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-black text-white transition hover:-translate-y-1 cursor-pointer;
+  box-shadow: 0 14px 34px rgba(225, 29, 72, 0.34);
+}
+
+.slide-assistant-open .slide-assistant-toggle {
+  @apply h-12 w-12 px-0;
+}
+
+@keyframes slide-assistant-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slide-assistant-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+
+.socratic-lab-description {
+  @apply mt-5 max-w-3xl text-xs leading-relaxed text-slate-500;
+}
+
+.socratic-lab-requirements {
+  @apply mt-4 grid gap-2 text-xs font-bold text-slate-600 md:grid-cols-3;
+}
+
+.socratic-lab-requirements span {
+  @apply flex items-center gap-2 rounded-xl bg-white px-3 py-3;
+}
+
+.socratic-lab-requirements svg {
+  @apply shrink-0 text-emerald-500;
+}
+
+/* Lesson slide management */
+.lesson-slide-upload {
+  @apply mt-5 grid items-end gap-4 lg:grid-cols-[0.9fr_1.3fr_auto];
+}
+
+.lesson-slide-file {
+  @apply cursor-pointer py-2;
+}
+
+.lesson-slide-upload small {
+  @apply mt-1.5 block text-[10px] font-semibold text-slate-400;
+}
+
+.lesson-slide-submit {
+  @apply min-h-11 whitespace-nowrap;
+}
+
+.lesson-slide-list {
+  @apply mt-6 grid gap-2;
+}
+
+.lesson-slide-row {
+  @apply grid items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto];
+}
+
+.lesson-slide-status {
+  @apply flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-400;
+}
+
+.lesson-slide-status-ready {
+  @apply bg-blue-50 text-blue-600;
+}
+
+.lesson-slide-row p {
+  @apply text-xs font-black text-slate-800;
+}
+
+.lesson-slide-row span {
+  @apply mt-1 block truncate text-[10px] font-semibold text-slate-400;
+}
+
+.lesson-slide-actions {
+  @apply flex items-center gap-2;
+}
+
+.lesson-slide-manager-compact .lesson-slide-list {
+  @apply max-h-72 overflow-y-auto pr-1;
+}
+
+@media (max-width: 640px) {
+  .lesson-slide-row {
+    @apply grid-cols-[auto_minmax(0,1fr)];
+  }
+
+  .lesson-slide-actions {
+    @apply col-span-2 justify-end;
+  }
+
+  .socratic-pdf-viewer {
+    @apply min-h-[440px];
+  }
+
+  .slide-assistant {
+    @apply right-3;
+    bottom: 5.75rem;
+  }
+
+  .slide-assistant-panel {
+    width: calc(100vw - 1.5rem);
+    height: min(500px, calc(100vh - 8.5rem));
+  }
+}
+
+/* Quiz styling */
+.socratic-quiz-box {
+  @apply max-w-xl mx-auto rounded-3xl border border-slate-100 bg-white p-6 shadow-xl shadow-slate-100/50 space-y-6;
+}
+
+.socratic-quiz-header {
+  @apply flex items-center justify-between border-b border-slate-100 pb-3;
+}
+
+.socratic-quiz-q {
+  @apply text-sm font-extrabold text-slate-800 leading-relaxed;
+}
+
+.socratic-quiz-options {
+  @apply space-y-3;
+}
+
+.socratic-quiz-option {
+  @apply w-full text-left rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300 cursor-pointer flex items-center justify-between;
+}
+
+.socratic-quiz-option-selected {
+  @apply border-red-500 bg-red-50/50 text-red-700;
+}
+
+.socratic-quiz-option-correct {
+  @apply border-emerald-500 bg-emerald-50/50 text-emerald-700;
+}
+
+.socratic-quiz-option-incorrect {
+  @apply border-rose-500 bg-rose-50/50 text-rose-700;
+}
+
+/* Leaderboard */
+.socratic-leaderboard-podium {
+  @apply flex justify-center items-end gap-4 md:gap-8 border-b border-slate-50 pb-8 mb-6 pt-4;
+}
+
+.socratic-podium-item {
+  @apply flex flex-col items-center;
+}
+
+.socratic-podium-avatar {
+  @apply w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-slate-100 object-cover shadow-sm;
+}
+
+.socratic-podium-item-1 .socratic-podium-avatar {
+  @apply border-yellow-400 w-16 h-16 md:w-20 md:h-20;
+}
+
+.socratic-podium-item-2 .socratic-podium-avatar {
+  @apply border-slate-300;
+}
+
+.socratic-podium-item-3 .socratic-podium-avatar {
+  @apply border-amber-600;
+}
+
+.socratic-podium-stand {
+  @apply w-20 md:w-28 bg-slate-50 border border-slate-100 rounded-t-xl flex flex-col items-center justify-center p-3 mt-3 shadow-inner;
+}
+
+.socratic-podium-item-1 .socratic-podium-stand {
+  @apply h-28 md:h-36 bg-yellow-50/50 border-yellow-100;
+}
+
+.socratic-podium-item-2 .socratic-podium-stand {
+  @apply h-20 md:h-28 bg-slate-100/50;
+}
+
+.socratic-podium-item-3 .socratic-podium-stand {
+  @apply h-14 md:h-20 bg-amber-50/30;
+}
+
+.socratic-podium-rank {
+  @apply font-black text-lg md:text-2xl text-slate-400 leading-none;
+}
+
+.socratic-podium-item-1 .socratic-podium-rank {
+  @apply text-yellow-600 text-2xl md:text-3xl;
+}
+
+.socratic-leaderboard-list {
+  @apply space-y-3 max-w-2xl mx-auto;
+}
+
+.socratic-leaderboard-row {
+  @apply flex items-center justify-between p-3 rounded-2xl border border-slate-100 bg-white transition hover:bg-slate-50/50;
+}
+
+.socratic-leaderboard-row-highlight {
+  @apply border-red-100 bg-red-50/30;
+}
+
+.socratic-leaderboard-left {
+  @apply flex items-center gap-3;
+}
+
+.socratic-leaderboard-num {
+  @apply w-6 text-center font-bold text-xs text-slate-400;
+}
+
+.socratic-leaderboard-avatar {
+  @apply w-8 h-8 rounded-full border border-slate-100 object-cover;
+}
+
+.socratic-leaderboard-name {
+  @apply text-xs font-bold text-slate-700;
+}
+
+.socratic-leaderboard-row-highlight .socratic-leaderboard-name {
+  @apply text-red-700;
+}
+
+.socratic-leaderboard-xp {
+  @apply text-xs font-black text-slate-800;
+}
+
+/* Badges */
+.socratic-badge-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-6;
+}
+
+.socratic-badge-card {
+  @apply rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm space-y-3 transition hover:scale-[1.02] hover:shadow-md flex flex-col items-center justify-center;
+}
+
+.socratic-badge-card-locked {
+  @apply opacity-55 bg-slate-50/50;
+}
+
+.socratic-badge-icon {
+  @apply w-14 h-14 rounded-2xl bg-yellow-50 text-yellow-600 flex items-center justify-center shadow-inner;
+}
+
+.socratic-badge-card-locked .socratic-badge-icon {
+  @apply bg-slate-100 text-slate-400;
+}
+
+.socratic-badge-card h3 {
+  @apply text-xs font-black text-slate-800;
+}
+
+.socratic-badge-card p {
+  @apply text-[10px] text-slate-500 leading-normal;
 }
