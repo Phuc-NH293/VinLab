@@ -13,6 +13,7 @@ import {
   Clock3,
   Download,
   Database,
+  ExternalLink,
   FileCheck,
   FlaskConical,
   GraduationCap,
@@ -2353,7 +2354,7 @@ function SocraticWorkspace() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`socratic-workspace space-y-6 ${subTab === 'roadmap' && selectedLesson ? 'socratic-slide-mode' : ''}`}>
       {/* Sub navigation tabs */}
       <div className="socratic-navbar">
         <button type="button" className={`socratic-nav-btn ${subTab === 'home' ? 'socratic-nav-btn-active' : ''}`} onClick={() => setSubTab('home')}>
@@ -2645,7 +2646,7 @@ function SocraticWorkspace() {
               </div>
             </section>
           ) : (
-            <section className="card socratic-lesson-detail">
+            <section className={`card socratic-lesson-detail ${lessonResource ? 'socratic-lesson-detail-viewing' : ''}`}>
               <button type="button" className="socratic-lesson-back" onClick={() => {
                 setSelectedLesson(null);
                 setLessonResource(null);
@@ -2665,7 +2666,7 @@ function SocraticWorkspace() {
                 </div>
               </div>
 
-              <div className="socratic-lesson-resources">
+              <div className={`socratic-lesson-resources ${lessonResource ? 'socratic-lesson-resources-active' : ''}`}>
                 <article className="socratic-resource-card socratic-resource-card-slide">
                   <div className="socratic-resource-icon"><BookOpen size={23} /></div>
                   <div className="socratic-resource-meta">Nội dung học</div>
@@ -2714,6 +2715,11 @@ function SocraticWorkspace() {
                       <span>Slide buổi học</span>
                       <h3>Bài {String(selectedLesson.id).padStart(2, '0')} · {selectedLesson.title}</h3>
                     </div>
+                    {slidePdfUrl && (
+                      <a className="socratic-pdf-fullscreen" href={slidePdfUrl} target="_blank" rel="noreferrer">
+                        <ExternalLink size={15} /> <span>Mở toàn màn hình</span>
+                      </a>
+                    )}
                   </div>
                   {slideLoading && <div className="socratic-pdf-state">Đang tải slide PDF...</div>}
                   {slideError && <div className="result-message mt-4">❌ {slideError}</div>}
