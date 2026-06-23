@@ -2529,7 +2529,31 @@ function SocraticWorkspace() {
 
           {/* Chat Container */}
           <div className="socratic-chat-area">
-            <div className="socratic-chat-header flex items-center justify-between">
+            {/* Mobile Topic Selector */}
+            <div className="lg:hidden px-4 py-3 border-b border-slate-100 flex gap-2 overflow-x-auto bg-slate-50/30">
+              <button
+                type="button"
+                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'prompt_design' ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md shadow-red-600/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                onClick={() => setChatTopic('prompt_design')}
+              >
+                💬 Prompt Design
+              </button>
+              <button
+                type="button"
+                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'rag_basics' ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md shadow-red-600/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                onClick={() => setChatTopic('rag_basics')}
+              >
+                📚 RAG & Vector
+              </button>
+              <button
+                type="button"
+                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'ai_agents' ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md shadow-red-600/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                onClick={() => setChatTopic('ai_agents')}
+              >
+                🤖 AI Agents & MCP
+              </button>
+            </div>
+            <div className="socratic-chat-header flex flex-wrap items-center justify-between gap-3">
               <div className="socratic-chat-header-title">
                 <h3>Socratic AI Tutor</h3>
                 <p>Đang thảo luận: {chatTopic === 'prompt_design' ? 'Prompt Design' : chatTopic === 'rag_basics' ? 'RAG basics' : 'AI Agents'}</p>

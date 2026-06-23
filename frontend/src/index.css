@@ -1128,8 +1128,7 @@ button {
 }
 
 .mobile-nav {
-  @apply fixed bottom-0 left-0 right-0 z-50 grid rounded-t-[1.75rem] border-x border-t border-white/90 bg-white/95 p-2 backdrop-blur-xl;
-  width: 100%;
+  @apply fixed bottom-0 left-0 right-0 z-50 grid rounded-t-[2rem] border-x border-t border-white/90 bg-white/95 p-2 backdrop-blur-xl sm:bottom-4 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-[480px] sm:rounded-3xl sm:border sm:shadow-2xl;
   box-shadow:
     0 -12px 38px rgba(30, 41, 59, 0.14),
     0 -2px 8px rgba(30, 41, 59, 0.06);
@@ -1183,7 +1182,7 @@ button {
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .mobile-nav {
     @apply rounded-t-[1.5rem] p-1.5;
   }
@@ -1555,6 +1554,20 @@ button {
   @apply flex flex-wrap gap-2 border-b border-slate-100 pb-3 mb-6;
 }
 
+@media (max-width: 768px) {
+  .socratic-navbar {
+    @apply flex-nowrap overflow-x-auto pb-2 -mx-4 px-4;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  .socratic-navbar::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+  .socratic-nav-btn {
+    @apply shrink-0;
+  }
+}
+
 .socratic-nav-btn {
   @apply flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 cursor-pointer;
 }
@@ -1823,7 +1836,7 @@ button {
 }
 
 .socratic-lesson-resources {
-  @apply mt-6 grid gap-4 lg:grid-cols-3;
+  @apply mt-6 grid gap-4 md:grid-cols-3;
 }
 
 .socratic-resource-card {
@@ -2088,7 +2101,7 @@ button {
   @apply max-h-72 overflow-y-auto pr-1;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .lesson-slide-row {
     @apply grid-cols-[auto_minmax(0,1fr)];
   }
