@@ -702,6 +702,7 @@ def student_schedule(
         for row in db.query(ClassStudent).filter(ClassStudent.student_id == current_user.student_id).all()
     ]
     query = db.query(LabSession)
+    query = query.filter(LabSession.qr_token != TEST_QR_TOKEN)
     if class_ids:
         query = query.filter((LabSession.class_id.in_(class_ids)) | (LabSession.class_id.is_(None)))
     return query.order_by(LabSession.start_time.asc()).all()
@@ -896,9 +897,13 @@ def check_in(
     now = datetime.utcnow()
     if not (session.start_time <= now <= session.end_time):
         raise HTTPException(400, "Ngoài thời gian điểm danh")
-    status = "late" if now.timestamp() > session.start_time.timestamp() + 15 * 60 else "present"
-    device_id = request.headers.get("x-device-id")
     is_test_qr = session.qr_token == TEST_QR_TOKEN
+    status = (
+        "present"
+        if is_test_qr
+        else "late" if now.timestamp() > session.start_time.timestamp() + 15 * 60 else "present"
+    )
+    device_id = request.headers.get("x-device-id")
     shared_device = False if is_test_qr else flag_shared_device(db, student.id, session.id, device_id)
     if shared_device:
         db.commit()
