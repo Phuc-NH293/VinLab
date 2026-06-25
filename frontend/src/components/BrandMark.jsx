@@ -1,7 +1,9 @@
+import vinUniversityLogo from '../assets/vinuniversity-logo.png';
+
 export function BrandMark() {
   return (
-    <div className="brand-mark" aria-label="VinLab">
-      <span>V</span>
-    </div>
+    <span className="brand-mark" aria-label="VinUniversity">
+      <img src={vinUniversityLogo} alt="VinUniversity" />
+    </span>
   );
 }

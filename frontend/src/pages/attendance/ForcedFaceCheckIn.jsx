@@ -294,7 +294,6 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
       <section className="login-brand-panel flex flex-col justify-between">
         <div>
           <BrandMark />
-          <span className="login-brand-name">VINLAB</span>
           <div className="login-brand-content mt-8">
             <p className="eyebrow"><ScanFace size={15} />Bắt buộc điểm danh</p>
             <h1>Xác thực khuôn mặt để vào hệ thống</h1>

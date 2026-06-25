@@ -53,17 +53,12 @@ button {
 }
 
 .brand-mark {
-  @apply relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 via-red-600 to-rose-700 text-xl font-black italic text-white;
-  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.28);
+  @apply relative flex h-14 w-[14rem] shrink-0 items-center justify-center overflow-hidden rounded-md bg-white px-2;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
 }
 
-.brand-mark::after {
-  content: "";
-  @apply absolute -right-2 -top-3 h-8 w-8 rounded-full bg-orange-300/70 blur-sm;
-}
-
-.brand-mark span {
-  @apply relative z-10;
+.brand-mark img {
+  @apply block h-auto max-h-full w-full object-contain;
 }
 
 .brand-pill {
@@ -359,10 +354,6 @@ button {
   @apply -bottom-36 -left-28 h-[28rem] w-[28rem];
 }
 
-.login-brand-name {
-  @apply absolute left-[6.5rem] top-[3.3rem] text-xl font-black tracking-[0.15em];
-}
-
 .login-brand-content {
   @apply relative z-10 my-auto max-w-xl;
 }
@@ -401,11 +392,7 @@ button {
 }
 
 .login-mobile-brand {
-  @apply mb-8 flex items-center gap-3 lg:hidden;
-}
-
-.login-mobile-brand strong {
-  @apply text-xl font-black tracking-[0.12em] text-slate-950;
+  @apply mb-8 flex items-center lg:hidden;
 }
 
 .demo-accounts {
@@ -2399,32 +2386,7 @@ button {
   }
 
   .topbar .brand-mark {
-    @apply h-9 w-9 rounded-xl text-base;
-  }
-
-  .topbar h1 {
-    @apply text-base;
-  }
-
-  .topbar h1 + .brand-pill,
-  .topbar h1 ~ .brand-pill {
-    @apply hidden;
-  }
-
-  .topbar h1 + span {
-    @apply hidden;
-  }
-
-  .topbar h1 ~ span {
-    @apply hidden;
-  }
-
-  .topbar h1 + .brand-pill {
-    @apply hidden;
-  }
-
-  .topbar .brand-mark + div > p {
-    @apply hidden;
+    @apply h-10 w-[9.5rem] rounded;
   }
 
   .admin-list-row {

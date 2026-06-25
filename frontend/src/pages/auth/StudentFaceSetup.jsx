@@ -10,8 +10,8 @@ export function StudentFaceSetup({ currentUser, profile, onComplete, onLogout })
         <div className="flex items-center gap-3">
           <BrandMark />
           <div>
-            <strong>VINLAB</strong>
-            <p>Thiết lập tài khoản sinh viên</p>
+            <strong>Thiết lập tài khoản sinh viên</strong>
+            <p>VinUniversity Smart Attendance</p>
           </div>
         </div>
         <button type="button" className="logout-button" onClick={onLogout}>

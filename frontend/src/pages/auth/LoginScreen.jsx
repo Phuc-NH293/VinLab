@@ -40,7 +40,6 @@ export function LoginScreen({ onLogin, onGoToWelcome }) {
       <div className="login-ambient login-ambient-two" />
       <section className="login-brand-panel">
         <BrandMark />
-        <span className="login-brand-name">VINLAB</span>
         <div className="login-brand-content">
           <p className="eyebrow"><ShieldCheck size={15} />Hệ thống bảo mật JWT</p>
           <h1>Điểm danh thông minh cho lớp học hiện đại.</h1>
@@ -55,7 +54,7 @@ export function LoginScreen({ onLogin, onGoToWelcome }) {
 
       <main className="login-form-panel">
         <form className="login-card" onSubmit={login}>
-          <div className="login-mobile-brand"><BrandMark /><strong>VINLAB</strong></div>
+          <div className="login-mobile-brand"><BrandMark /></div>
           <p className="section-kicker">Chào mừng trở lại</p>
           <h2>Đăng nhập tài khoản</h2>
           <p className="login-subtitle">Sử dụng tài khoản được cấp theo đúng vai trò của bạn.</p>

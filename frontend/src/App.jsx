@@ -259,13 +259,6 @@ export function App() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <BrandMark />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black tracking-tight text-slate-950 sm:text-xl">VINLAB</h1>
-                <span className="brand-pill">AI</span>
-              </div>
-              <p className="text-xs font-medium text-slate-500">Nền tảng điểm danh thông minh</p>
-            </div>
           </div>
           <div className="status-pill">
             <span className="status-dot" />

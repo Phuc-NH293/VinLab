@@ -20,10 +20,6 @@ export function WelcomeScreen({ onGoToLogin }) {
         <div className="welcome-nav">
           <a href="#" className="flex items-center gap-3">
             <BrandMark />
-            <div className="text-slate-900">
-              <span className="block font-black text-lg tracking-tight leading-none">VINLAB</span>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Smart Attendance</span>
-            </div>
           </a>
 
           <nav className="welcome-nav-links">
@@ -248,7 +244,6 @@ export function WelcomeScreen({ onGoToLogin }) {
           <div className="welcome-footer-brand">
             <span className="flex items-center gap-2 mb-3">
               <BrandMark />
-              <strong className="text-slate-900 font-black text-lg">VINLAB</strong>
             </span>
             <p>Hệ thống quản lý điểm danh và bảo mật phòng Lab thông minh.</p>
           </div>
