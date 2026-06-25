@@ -128,9 +128,13 @@ export function StudentPortal() {
                 </span>
                 <div>
                   <p>{item.title}</p>
-                  <small>{item.room} · {new Date(item.checked_at).toLocaleString('vi-VN')}</small>
+                  <small>
+                    {item.room} · Vào: {new Date(item.checked_at).toLocaleString('vi-VN')}
+                    {' · '}
+                    {item.checkout_at ? `Ra: ${new Date(item.checkout_at).toLocaleString('vi-VN')}` : 'Chưa check-out'}
+                  </small>
                 </div>
-                <b>{item.method}</b>
+                <b>{item.method} → {item.checkout_method || '—'}</b>
               </div>
             ))}
           </div>

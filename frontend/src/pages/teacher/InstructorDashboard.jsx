@@ -9,16 +9,16 @@ export function ReportTable({ records }) {
   return (
     <div className="report-table-wrap mt-5">
       <table className="report-table">
-        <thead><tr><th>Sinh viên</th><th>Buổi học</th><th>Trạng thái</th><th>Phương thức</th><th>Confidence</th><th>Thời gian</th></tr></thead>
+        <thead><tr><th>Sinh viên</th><th>Buổi học</th><th>Trạng thái</th><th>Check-in</th><th>Check-out</th><th>Confidence</th></tr></thead>
         <tbody>
           {records.map(row => (
             <tr key={row.attendance_id}>
               <td><strong>{row.full_name}</strong><small>{row.student_code} · {row.class_name}</small></td>
               <td>{row.session_title}</td>
               <td>{row.status}</td>
-              <td>{row.method}</td>
+              <td>{row.method} · {row.checked_at ? new Date(row.checked_at).toLocaleString('vi-VN') : '—'}</td>
+              <td>{row.checkout_method || '—'} · {row.checkout_at ? new Date(row.checkout_at).toLocaleString('vi-VN') : 'Chưa ra'}</td>
               <td>{row.confidence_score ?? '—'}</td>
-              <td>{row.checked_at ? new Date(row.checked_at).toLocaleString('vi-VN') : '—'}</td>
             </tr>
           ))}
         </tbody>
@@ -212,7 +212,7 @@ export function InstructorDashboard() {
     }
     const escapeCell = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
     const rows = [
-      ['Mã sinh viên', 'Họ và tên', 'Lớp', 'Trạng thái', 'Phương thức', 'Thời gian'],
+      ['Mã sinh viên', 'Họ và tên', 'Lớp', 'Trạng thái', 'Check-in', 'Giờ vào', 'Check-out', 'Giờ ra'],
       ...roster.map(student => [
         student.student_code,
         student.full_name,
@@ -225,6 +225,10 @@ export function InstructorDashboard() {
         student.attendance?.method || '',
         student.attendance?.checked_at
           ? new Date(student.attendance.checked_at).toLocaleString('vi-VN')
+          : '',
+        student.attendance?.checkout_method || '',
+        student.attendance?.checkout_at
+          ? new Date(student.attendance.checkout_at).toLocaleString('vi-VN')
           : '',
       ]),
     ];
@@ -356,6 +360,10 @@ export function InstructorDashboard() {
                       {student.attendance.method === 'MANUAL' ? 'Giảng viên ghi nhận' : student.attendance.method}
                       {' · '}
                       {new Date(student.attendance.checked_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                      {' · '}
+                      {student.attendance.checkout_at
+                        ? `Ra ${new Date(student.attendance.checkout_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+                        : 'Chưa check-out'}
                     </small>
                   )}
                 </div>

@@ -1,5 +1,5 @@
 export function downloadExcel(records, filename = 'bao-cao-diem-danh.xls') {
-  const columns = ['Mã SV', 'Họ tên', 'Lớp', 'Buổi học', 'Trạng thái', 'Phương thức', 'Độ tin cậy', 'Thời gian'];
+  const columns = ['Mã SV', 'Họ tên', 'Lớp', 'Buổi học', 'Trạng thái', 'Check-in', 'Giờ vào', 'Check-out', 'Giờ ra', 'Độ tin cậy'];
   const rows = records.map(row => [
     row.student_code,
     row.full_name,
@@ -7,8 +7,10 @@ export function downloadExcel(records, filename = 'bao-cao-diem-danh.xls') {
     row.session_title,
     row.status,
     row.method,
-    row.confidence_score ?? '',
     row.checked_at ? new Date(row.checked_at).toLocaleString('vi-VN') : '',
+    row.checkout_method || '',
+    row.checkout_at ? new Date(row.checkout_at).toLocaleString('vi-VN') : '',
+    row.confidence_score ?? '',
   ]);
   const escape = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   const table = `<table><thead><tr>${columns.map(value => `<th>${escape(value)}</th>`).join('')}</tr></thead>` +
@@ -24,7 +26,7 @@ export function downloadExcel(records, filename = 'bao-cao-diem-danh.xls') {
 export function printPdfReport(records) {
   const popup = window.open('', '_blank', 'width=1000,height=760');
   if (!popup) return;
-  const rows = records.map(row => `<tr><td>${row.student_code}</td><td>${row.full_name}</td><td>${row.class_name}</td><td>${row.session_title}</td><td>${row.status}</td><td>${row.method}</td><td>${row.confidence_score ?? ''}</td></tr>`).join('');
-  popup.document.write(`<!doctype html><html><head><title>Báo cáo điểm danh</title><style>body{font-family:Arial;padding:28px;color:#172033}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #d8dee9;padding:8px;text-align:left;font-size:12px}th{background:#f1f5f9}</style></head><body><h1>Báo cáo điểm danh VINLAB</h1><p>Ngày xuất: ${new Date().toLocaleString('vi-VN')}</p><table><thead><tr><th>Mã SV</th><th>Họ tên</th><th>Lớp</th><th>Buổi học</th><th>Trạng thái</th><th>Phương thức</th><th>Confidence</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
+  const rows = records.map(row => `<tr><td>${row.student_code}</td><td>${row.full_name}</td><td>${row.class_name}</td><td>${row.session_title}</td><td>${row.status}</td><td>${row.method}</td><td>${row.checked_at ? new Date(row.checked_at).toLocaleString('vi-VN') : ''}</td><td>${row.checkout_method || ''}</td><td>${row.checkout_at ? new Date(row.checkout_at).toLocaleString('vi-VN') : ''}</td><td>${row.confidence_score ?? ''}</td></tr>`).join('');
+  popup.document.write(`<!doctype html><html><head><title>Báo cáo điểm danh</title><style>body{font-family:Arial;padding:28px;color:#172033}h1{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #d8dee9;padding:8px;text-align:left;font-size:12px}th{background:#f1f5f9}</style></head><body><h1>Báo cáo điểm danh VINLAB</h1><p>Ngày xuất: ${new Date().toLocaleString('vi-VN')}</p><table><thead><tr><th>Mã SV</th><th>Họ tên</th><th>Lớp</th><th>Buổi học</th><th>Trạng thái</th><th>Check-in</th><th>Giờ vào</th><th>Check-out</th><th>Giờ ra</th><th>Confidence</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
   popup.document.close();
 }

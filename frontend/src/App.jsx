@@ -124,7 +124,12 @@ export function App() {
     async function verifyCheckIn() {
       try {
         const schedule = await api('/student/schedule');
-        const activeSessions = schedule.filter(s => s.status === 'active');
+        const now = Date.now();
+        const activeSessions = schedule.filter(s => {
+          const startsAt = new Date(s.start_time).getTime();
+          const endsAt = new Date(s.end_time).getTime();
+          return s.status === 'active' && startsAt <= now && now <= endsAt;
+        });
 
         if (activeSessions.length === 0) {
           if (active) {

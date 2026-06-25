@@ -4,7 +4,7 @@ import { QrCheckIn } from './QrCheckIn';
 import { FaceDetect } from './FaceDetect';
 
 export function CheckIn({ currentUser }) {
-  const [method, setMethod] = useState('qr');
+  const [method, setMethod] = useState('face');
   const [switchingCamera, setSwitchingCamera] = useState(false);
   const stopActiveCameraRef = useRef(async () => {});
 
@@ -39,8 +39,8 @@ export function CheckIn({ currentUser }) {
         >
           <span><QrCode size={21} /></span>
           <div>
-            <strong>Quét mã QR</strong>
-            <small>Điểm danh bằng mã của buổi học</small>
+            <strong>Check-out bằng QR</strong>
+            <small>Quét mã khi kết thúc buổi học</small>
           </div>
         </button>
         {currentUser.role === 'student' && (
@@ -52,8 +52,8 @@ export function CheckIn({ currentUser }) {
           >
             <span><ScanFace size={21} /></span>
             <div>
-              <strong>Quét khuôn mặt</strong>
-              <small>Chụp và gửi ảnh xác thực</small>
+              <strong>Check-in khuôn mặt</strong>
+              <small>Xác thực khuôn mặt khi vào lớp</small>
             </div>
           </button>
         )}

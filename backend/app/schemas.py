@@ -109,6 +109,8 @@ class AttendanceOut(BaseModel):
     confidence_score: float | None = None
     review_note: str | None = None
     checked_at: datetime
+    checkout_method: str | None = None
+    checkout_at: datetime | None = None
     class Config:
         from_attributes = True
 

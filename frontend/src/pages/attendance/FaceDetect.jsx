@@ -345,7 +345,7 @@ export function FaceDetect({ registerCameraStop, currentUser }) {
         <canvas ref={canvasRef} className="hidden" />
 
         <label className="field-label mt-5 block">
-          Buổi học cần điểm danh
+          Buổi học cần check-in
           <select
             className="input mt-2"
             value={selectedSessionId}
@@ -376,7 +376,7 @@ export function FaceDetect({ registerCameraStop, currentUser }) {
           <SectionHeading icon={Sparkles} kicker="Ảnh xác thực" title="Bản xem trước" />
           <p className="mt-3 text-sm leading-relaxed text-slate-500">
             Sinh viên: <strong className="text-slate-800">{currentUser.full_name}</strong>. Sau khi gửi,
-            lượt điểm danh sẽ chờ giảng viên quét xác nhận.
+            lượt check-in sẽ được xác thực bằng khuôn mặt trước khi bạn có thể check-out QR.
           </p>
           {preview ? (
             <img src={preview} alt="Ảnh khuôn mặt đã chụp" className="preview-image mt-5" />
@@ -387,7 +387,7 @@ export function FaceDetect({ registerCameraStop, currentUser }) {
             </div>
           )}
           <button type="button" className="btn mt-4 w-full" onClick={upload} disabled={!photo || loading || !selectedSessionId || livenessChecking}>
-            <Send size={18} />{loading ? 'Đang gửi...' : livenessChecking ? 'Đang xác thực...' : livenessPassed ? 'Gửi điểm danh khuôn mặt' : 'Xác thực và gửi điểm danh'}
+            <Send size={18} />{loading ? 'Đang gửi...' : livenessChecking ? 'Đang xác thực...' : livenessPassed ? 'Gửi check-in khuôn mặt' : 'Xác thực và check-in'}
           </button>
           {message && <div className="result-message mt-4">{message}</div>}
         </section>

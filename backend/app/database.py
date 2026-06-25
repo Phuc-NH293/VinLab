@@ -47,6 +47,9 @@ def ensure_schema_columns():
         "attendances": {
             "confidence_score": "FLOAT",
             "device_id": "VARCHAR",
+            "checkout_method": "VARCHAR",
+            "checkout_device_id": "VARCHAR",
+            "checkout_at": "TIMESTAMP",
             "review_note": "TEXT",
         },
         "users": {

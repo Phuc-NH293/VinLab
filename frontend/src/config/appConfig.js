@@ -1,7 +1,7 @@
 import { CalendarPlus, GraduationCap, LayoutDashboard, QrCode, ShieldCheck, Sparkles, Users } from 'lucide-react';
 
 export const navigation = [
-  { id: 'checkin', label: 'Điểm danh', description: 'Mã QR & khuôn mặt', icon: QrCode, roles: ['student'] },
+  { id: 'checkin', label: 'Vào / Ra', description: 'Mặt check-in · QR check-out', icon: QrCode, roles: ['student'] },
   { id: 'studentPortal', label: 'Cổng sinh viên', description: 'Lịch, lịch sử, xin nghỉ', icon: CalendarPlus, roles: ['student'] },
   { id: 'socraticDashboard', label: 'Gia sư AI & Lộ trình', description: 'Học tập AI, Socratic Chat', icon: Sparkles, roles: ['student'] },
   { id: 'sessions', label: 'Buổi thực hành', description: 'Lịch & mã QR', icon: CalendarPlus, roles: ['teacher'] },
@@ -12,9 +12,9 @@ export const navigation = [
 
 export const pageMeta = {
   checkin: {
-    eyebrow: 'Điểm danh nhanh',
-    title: 'Điểm danh thông minh',
-    description: 'Chọn quét mã QR hoặc xác thực khuôn mặt trong cùng một màn hình.',
+    eyebrow: 'Check-in / Check-out',
+    title: 'Điểm danh vào – ra',
+    description: 'Check-in bằng khuôn mặt khi vào lớp và quét QR để check-out khi ra về.',
     icon: QrCode,
   },
   socraticDashboard: {

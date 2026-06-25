@@ -434,12 +434,19 @@ def flag_overlapping_attendance(db: Session, student_id: int, session: LabSessio
             ))
             return
 
-def flag_shared_device(db: Session, student_id: int, session_id: int, device_id: str | None):
+def flag_shared_device(
+    db: Session,
+    student_id: int,
+    session_id: int,
+    device_id: str | None,
+    phase: str = "checkin",
+):
     if not device_id:
         return False
+    device_column = Attendance.checkout_device_id if phase == "checkout" else Attendance.device_id
     other = db.query(Attendance).filter(
         Attendance.session_id == session_id,
-        Attendance.device_id == device_id,
+        device_column == device_id,
         Attendance.student_id != student_id,
     ).first()
     if not other:
@@ -448,7 +455,11 @@ def flag_shared_device(db: Session, student_id: int, session_id: int, device_id:
         student_id=student_id,
         session_id=session_id,
         alert_type="shared_device",
-        details=f"Thiết bị {device_id} được nhiều sinh viên sử dụng trong cùng một buổi học",
+        details=(
+            f"Thiết bị {device_id} được nhiều sinh viên sử dụng để "
+            f"{'check-out QR' if phase == 'checkout' else 'check-in khuôn mặt'} "
+            "trong cùng một buổi học"
+        ),
         severity="high",
     ))
     return True
@@ -730,6 +741,8 @@ def student_attendance_history(
             "method": attendance.method,
             "status": attendance.status,
             "checked_at": attendance.checked_at,
+            "checkout_method": attendance.checkout_method,
+            "checkout_at": attendance.checkout_at,
         }
         for attendance, session in rows
     ]
@@ -863,7 +876,7 @@ async def student_face_access(
 
 
 @app.post("/api/check-in", response_model=AttendanceOut)
-def check_in(
+def check_out_by_qr(
     payload: CheckInRequest,
     request: Request,
     db: Session = Depends(get_db),
@@ -892,43 +905,41 @@ def check_in(
         Attendance.student_id == student.id,
         Attendance.session_id == session.id,
     ).first()
-    if existing_attendance:
-        raise HTTPException(409, "Bạn đã điểm danh buổi học này rồi")
+    if not existing_attendance:
+        raise HTTPException(400, "Bạn chưa check-in bằng khuôn mặt cho buổi học này")
+    if existing_attendance.status not in {"present", "late"}:
+        raise HTTPException(400, "Check-in khuôn mặt chưa được giảng viên xác nhận")
+    if existing_attendance.checkout_at:
+        raise HTTPException(409, "Bạn đã check-out buổi học này rồi")
     now = datetime.utcnow()
-    if not (session.start_time <= now <= session.end_time):
-        raise HTTPException(400, "Ngoài thời gian điểm danh")
     is_test_qr = session.qr_token == TEST_QR_TOKEN
-    status = (
-        "present"
-        if is_test_qr
-        else "late" if now.timestamp() > session.start_time.timestamp() + 15 * 60 else "present"
-    )
+    policy = db.query(SessionPolicy).filter(SessionPolicy.session_id == session.id).first()
+    checkout_deadline = session.end_time.timestamp() + (policy.checkin_after_minutes if policy else 0) * 60
+    if not is_test_qr and not (session.start_time.timestamp() <= now.timestamp() <= checkout_deadline):
+        raise HTTPException(400, "Ngoài thời gian check-out")
     device_id = request.headers.get("x-device-id")
-    shared_device = False if is_test_qr else flag_shared_device(db, student.id, session.id, device_id)
+    shared_device = False if is_test_qr else flag_shared_device(
+        db, student.id, session.id, device_id, phase="checkout"
+    )
     if shared_device:
         db.commit()
         raise HTTPException(
             409,
-            "Thiết bị này đã được dùng điểm danh cho sinh viên khác trong cùng buổi học",
+            "Thiết bị này đã được dùng check-out cho sinh viên khác trong cùng buổi học",
         )
-    attendance = Attendance(
-        student_id=student.id,
-        session_id=session.id,
-        method="QR",
-        status=status,
-        device_id=device_id,
-    )
-    db.add(attendance)
+    existing_attendance.checkout_at = now
+    existing_attendance.checkout_method = "QR"
+    existing_attendance.checkout_device_id = device_id
     try:
-        db.flush()
-        add_log(db, current_user, "qr_check_in", "attendance", attendance.id, {"status": status})
-        flag_overlapping_attendance(db, student.id, session)
+        add_log(db, current_user, "qr_check_out", "attendance", existing_attendance.id, {
+            "checkout_at": now.isoformat(),
+        })
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(409, "Bạn đã điểm danh buổi học này rồi")
-    db.refresh(attendance)
-    return attendance
+        raise HTTPException(409, "Bạn đã check-out buổi học này rồi")
+    db.refresh(existing_attendance)
+    return existing_attendance
 
 @app.post("/api/face-check-in")
 async def face_check_in(
@@ -1002,7 +1013,11 @@ async def face_check_in(
     confidence = round(face_similarity(probe_vector, stored_vectors), 4)
     attendance_status = "present" if confidence >= 0.85 else "pending_review"
     device_id = request.headers.get("x-device-id")
-    shared_device = flag_shared_device(db, current_user.student.id, session.id, device_id)
+    shared_device = (
+        False
+        if session.qr_token == TEST_QR_TOKEN
+        else flag_shared_device(db, current_user.student.id, session.id, device_id)
+    )
     if shared_device:
         attendance_status = "pending_review"
     attendance = Attendance(
@@ -1014,14 +1029,14 @@ async def face_check_in(
         device_id=device_id,
     )
     db.add(attendance)
-    db.flush()
-    add_log(db, current_user, "face_check_in", "attendance", attendance.id, {
-        "status": attendance_status,
-        "confidence_score": confidence,
-        "liveness_passed": liveness_passed,
-    })
-    flag_overlapping_attendance(db, current_user.student.id, session)
     try:
+        db.flush()
+        add_log(db, current_user, "face_check_in", "attendance", attendance.id, {
+            "status": attendance_status,
+            "confidence_score": confidence,
+            "liveness_passed": liveness_passed,
+        })
+        flag_overlapping_attendance(db, current_user.student.id, session)
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -1030,7 +1045,11 @@ async def face_check_in(
         "ok": True,
         "status": attendance_status,
         "confidence_score": confidence,
-        "message": "Đã gửi khuôn mặt, đang chờ giảng viên xác nhận",
+        "message": (
+            "Check-in khuôn mặt thành công"
+            if attendance_status == "present"
+            else "Đã gửi check-in khuôn mặt, đang chờ giảng viên xác nhận"
+        ),
         "face_image_path": thumbnail,
     }
 
@@ -1178,6 +1197,8 @@ def session_attendances(
             "confidence_score": a.confidence_score,
             "review_note": a.review_note,
             "checked_at": a.checked_at,
+            "checkout_method": a.checkout_method,
+            "checkout_at": a.checkout_at,
         }
         for a, s in rows
     ]
@@ -1653,6 +1674,8 @@ def attendance_report(
             "method": attendance.method,
             "confidence_score": attendance.confidence_score,
             "checked_at": attendance.checked_at,
+            "checkout_method": attendance.checkout_method,
+            "checkout_at": attendance.checkout_at,
         }
         for attendance, student, session in rows
     ]
@@ -1682,6 +1705,8 @@ def attendance_report(
                         "method": "",
                         "confidence_score": None,
                         "checked_at": None,
+                        "checkout_method": None,
+                        "checkout_at": None,
                     })
     summary = {
         "present": sum(row["status"] == "present" for row in records),

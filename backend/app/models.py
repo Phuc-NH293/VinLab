@@ -44,10 +44,13 @@ class Attendance(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id"))
     session_id = Column(Integer, ForeignKey("lab_sessions.id"))
-    method = Column(String, default="QR") # QR / FACE / MANUAL
+    method = Column(String, default="FACE") # FACE / MANUAL
     status = Column(String, default="present")
     confidence_score = Column(Float, nullable=True)
     device_id = Column(String, nullable=True)
+    checkout_method = Column(String, nullable=True)
+    checkout_device_id = Column(String, nullable=True)
+    checkout_at = Column(DateTime, nullable=True)
     review_note = Column(Text, nullable=True)
     checked_at = Column(DateTime, default=datetime.utcnow)
     student = relationship("Student", back_populates="attendances")

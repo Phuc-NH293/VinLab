@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Activity, Camera, MapPin, ScanFace, ShieldCheck } from 'lucide-react';
 import { api, API, authHeaders } from '../../lib/api';
 import { BrandMark } from '../../components';
-import { describeCameraError, getCaptureMetadata, getLocationName, captureLivenessFrame, drawVideoFrame, stampCaptureMetadata, canvasToJpegFile } from '../../lib/media';
+import { describeCameraError, getCaptureMetadata, getCurrentCoordinates, getLocationName, captureLivenessFrame, drawVideoFrame, stampCaptureMetadata, canvasToJpegFile } from '../../lib/media';
 
 export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }) {
   const videoRef = useRef(null);
@@ -260,14 +260,20 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
     try {
       const formData = new FormData();
       formData.append('file', photo);
+      formData.append('session_id', String(session.id));
       formData.append('liveness_passed', 'true');
-      const response = await fetch(`${API}/student/face-access`, {
+      const coordinates = await getCurrentCoordinates();
+      if (coordinates) {
+        formData.append('latitude', String(coordinates.latitude));
+        formData.append('longitude', String(coordinates.longitude));
+      }
+      const response = await fetch(`${API}/face-check-in`, {
         method: 'POST',
         headers: authHeaders(),
         body: formData,
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || 'Không thể xác thực khuôn mặt');
+      if (!response.ok) throw new Error(data.detail || 'Không thể check-in khuôn mặt');
       setMessage(`✅ ${data.message}`);
       
       setTimeout(() => {
@@ -296,7 +302,7 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
               Lớp học của bạn đang diễn ra buổi thực hành: <strong>{session.title}</strong> tại phòng <strong>{session.room}</strong>.
             </p>
             <p className="mt-2 text-sm text-slate-300">
-              Bạn cần thực hiện điểm danh bằng khuôn mặt để tiếp tục sử dụng cổng thông tin sinh viên và các tính năng khác.
+              Bạn cần check-in bằng khuôn mặt để tiếp tục. Khi kết thúc buổi học, hãy quét QR để check-out.
             </p>
           </div>
         </div>
@@ -309,7 +315,7 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
 
       <main className="login-form-panel">
         <div className="login-card max-w-lg w-full">
-          <h2 className="text-xl font-black text-slate-900">Quét khuôn mặt</h2>
+          <h2 className="text-xl font-black text-slate-900">Check-in khuôn mặt</h2>
           <p className="text-xs text-slate-500 mt-1">Vui lòng điều chỉnh khuôn mặt vào đúng khung hình camera trước.</p>
 
           <div className="relative mt-5 overflow-hidden rounded-2xl bg-slate-950 aspect-[4/3] flex items-center justify-center">
@@ -393,7 +399,7 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
                   onClick={upload}
                   disabled={loading}
                 >
-                  {loading ? 'Đang xác thực...' : 'Vào hệ thống'}
+                  {loading ? 'Đang check-in...' : 'Check-in & vào hệ thống'}
                 </button>
               </div>
             )}

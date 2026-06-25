@@ -61,9 +61,10 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
         method: 'POST',
         body: JSON.stringify({ student_code: studentCode, qr_token: normalizedToken }),
       });
-      setMessage('✅ Điểm danh thành công');
+      setMessage('✅ Check-out thành công');
     } catch (error) {
-      const duplicate = error.message.toLocaleLowerCase('vi').includes('đã điểm danh');
+      const normalizedError = error.message.toLocaleLowerCase('vi');
+      const duplicate = normalizedError.includes('đã điểm danh') || normalizedError.includes('đã check-out');
       setMessage(duplicate ? `ℹ️ ${error.message}` : `❌ ${error.message}`);
     }
   }
@@ -163,11 +164,11 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
                 qr_token: normalizedToken,
               }),
             });
-            if (mountedRef.current) setMessage('✅ Điểm danh thành công');
+            if (mountedRef.current) setMessage('✅ Check-out thành công');
           } catch (error) {
             if (mountedRef.current) {
               const isInvalidQr = error.message.toLocaleLowerCase('vi').includes('qr không hợp lệ');
-              const duplicate = error.message.toLocaleLowerCase('vi').includes('đã điểm danh');
+              const duplicate = error.message.toLocaleLowerCase('vi').includes('đã check-out');
               setMessage(duplicate
                 ? `ℹ️ ${error.message}`
                 : isInvalidQr
@@ -234,9 +235,9 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
       <section className="card scanner-card">
         <SectionHeading
           icon={QrCode}
-          kicker="Quét bằng camera"
-          title="Đưa mã QR vào khung"
-          description="Hệ thống sẽ tự động nhận diện và xác nhận."
+          kicker="Check-out bằng camera"
+          title="Đưa mã QR check-out vào khung"
+          description="Chỉ check-out được sau khi đã check-in khuôn mặt."
         />
         <label className="field-label mt-6 block">
           Mã sinh viên
@@ -293,11 +294,11 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
 
       <div className="space-y-5">
         <section className="card">
-          <SectionHeading icon={ShieldCheck} kicker="Phương án dự phòng" title="Nhập mã xác nhận thủ công" />
+          <SectionHeading icon={ShieldCheck} kicker="Phương án dự phòng" title="Nhập mã check-out thủ công" />
           <p className="mt-4 text-sm leading-relaxed text-slate-500">Sử dụng khi thiết bị không cấp quyền camera hoặc mã QR khó quét.</p>
           <input className="input mt-5" value={manual} onChange={e => setManual(e.target.value)} placeholder="Dán mã xác nhận tại đây" />
           <button className="btn mt-3 w-full" type="button" onClick={() => doCheck(manual)}>
-            Xác nhận điểm danh<ArrowRight size={18} />
+            Xác nhận check-out<ArrowRight size={18} />
           </button>
         </section>
 

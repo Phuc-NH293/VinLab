@@ -78,7 +78,7 @@ export function Sessions() {
       await load();
       setSelectedSessionId(String(created.id));
       setPresentingSession(created);
-      setMessage('✅ Đã tạo buổi học và phát hành mã QR.');
+      setMessage('✅ Đã tạo buổi học và phát hành mã QR check-out.');
     } catch (error) {
       setMessage(`❌ ${error.message}`);
     } finally {
@@ -151,9 +151,9 @@ export function Sessions() {
         <section className="card">
           <SectionHeading
             icon={QrCode}
-            kicker="QR theo buổi học"
-            title="Chọn buổi để phát mã điểm danh"
-            description="Mỗi buổi học có một mã QR và mã xác nhận riêng."
+            kicker="QR check-out theo buổi học"
+            title="Chọn buổi để phát mã check-out"
+            description="Sinh viên phải check-in khuôn mặt trước, sau đó dùng QR này để check-out."
           />
           <label className="field-label mt-5 block">
             Buổi học
@@ -183,7 +183,7 @@ export function Sessions() {
                 <code className="token-box">{selectedSession.qr_token}</code>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button className="btn" type="button" onClick={() => setPresentingSession(selectedSession)}>
-                    <Maximize2 size={17} />Trình chiếu QR
+                    <Maximize2 size={17} />Trình chiếu QR check-out
                   </button>
                   <button className="btn-secondary" type="button" onClick={() => copyToken(selectedSession)}>
                     <Copy size={17} />Sao chép mã
@@ -233,7 +233,7 @@ export function Sessions() {
             icon={CheckCircle2}
             kicker="Cập nhật tự động"
             title={`Danh sách điểm danh · ${selectedSession?.title || 'Chưa chọn buổi'}`}
-            description="Danh sách tự làm mới mỗi 5 giây sau khi sinh viên quét QR."
+            description="Danh sách tự làm mới mỗi 5 giây, hiển thị riêng giờ check-in và check-out."
           />
           <div className="flex items-center gap-2">
             <span className="count-badge">{attendances.length} sinh viên</span>
@@ -260,8 +260,12 @@ export function Sessions() {
                   <p className="text-sm text-slate-500">{attendance.student_code} · {attendance.class_name || 'Chưa có lớp'}</p>
                 </div>
                 <div className="session-attendance-meta">
-                  <span>{attendance.method}</span>
+                  <span>Vào · {attendance.method}</span>
                   <time>{new Date(attendance.checked_at).toLocaleString('vi-VN')}</time>
+                  <span className={attendance.checkout_at ? '' : 'session-checkout-missing'}>
+                    {attendance.checkout_at ? `Ra · ${attendance.checkout_method || 'QR'}` : 'Chưa check-out'}
+                  </span>
+                  {attendance.checkout_at && <time>{new Date(attendance.checkout_at).toLocaleString('vi-VN')}</time>}
                 </div>
               </div>
             ))}
@@ -270,12 +274,12 @@ export function Sessions() {
       </section>
 
       {presentingSession && (
-        <div className="qr-presentation" role="dialog" aria-modal="true" aria-label="Mã QR điểm danh">
+        <div className="qr-presentation" role="dialog" aria-modal="true" aria-label="Mã QR check-out">
           <button type="button" className="qr-presentation-close" onClick={() => setPresentingSession(null)} aria-label="Đóng">
             <X size={24} />
           </button>
           <div className="qr-presentation-card">
-            <p>Mã QR điểm danh</p>
+            <p>Mã QR check-out</p>
             <h2>{presentingSession.title}</h2>
             <span>{presentingSession.room}</span>
             <QRCodeSVG value={qrPayload(presentingSession.qr_token)} size={360} />

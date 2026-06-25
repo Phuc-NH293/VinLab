@@ -1013,6 +1013,10 @@ button {
   font-weight: 900;
 }
 
+.session-attendance-meta .session-checkout-missing {
+  color: #b45309;
+}
+
 @media (max-width: 640px) {
   .session-qr-focus {
     grid-template-columns: 1fr;
