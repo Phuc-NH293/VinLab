@@ -57,13 +57,11 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
       return;
     }
     try {
-      const result = await api('/check-in', {
+      await api('/check-in', {
         method: 'POST',
         body: JSON.stringify({ student_code: studentCode, qr_token: normalizedToken }),
       });
-      setMessage(result.review_note
-        ? `✅ Điểm danh thành công. ${result.review_note}`
-        : '✅ Điểm danh thành công');
+      setMessage('✅ Điểm danh thành công');
     } catch (error) {
       const duplicate = error.message.toLocaleLowerCase('vi').includes('đã điểm danh');
       setMessage(duplicate ? `ℹ️ ${error.message}` : `❌ ${error.message}`);
@@ -158,18 +156,14 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
             }
           }
           try {
-            const result = await api('/check-in', {
+            await api('/check-in', {
               method: 'POST',
               body: JSON.stringify({
                 student_code: studentCodeRef.current,
                 qr_token: normalizedToken,
               }),
             });
-            if (mountedRef.current) {
-              setMessage(result.review_note
-                ? `✅ Điểm danh thành công. ${result.review_note}`
-                : '✅ Điểm danh thành công');
-            }
+            if (mountedRef.current) setMessage('✅ Điểm danh thành công');
           } catch (error) {
             if (mountedRef.current) {
               const isInvalidQr = error.message.toLocaleLowerCase('vi').includes('qr không hợp lệ');

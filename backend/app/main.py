@@ -91,6 +91,7 @@ LESSON_TITLES = {
 }
 MAX_SLIDE_SIZE = 20 * 1024 * 1024
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+TEST_QR_TOKEN = "test"
 
 def serialize_user(user: User):
     return {
@@ -371,6 +372,30 @@ def seed_demo_accounts():
 
 
 seed_demo_accounts()
+
+
+def seed_test_qr_session():
+    from .database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        session = db.query(LabSession).filter(LabSession.qr_token == TEST_QR_TOKEN).first()
+        if not session:
+            session = LabSession(
+                title="Buổi kiểm thử QR",
+                room="TEST",
+                start_time=datetime(2020, 1, 1),
+                end_time=datetime(2100, 1, 1),
+                qr_token=TEST_QR_TOKEN,
+                status="active",
+            )
+            db.add(session)
+            db.commit()
+    finally:
+        db.close()
+
+
+seed_test_qr_session()
 
 
 def distance_meters(latitude_a, longitude_a, latitude_b, longitude_b):
@@ -873,17 +898,20 @@ def check_in(
         raise HTTPException(400, "Ngoài thời gian điểm danh")
     status = "late" if now.timestamp() > session.start_time.timestamp() + 15 * 60 else "present"
     device_id = request.headers.get("x-device-id")
-    shared_device = flag_shared_device(db, student.id, session.id, device_id)
+    is_test_qr = session.qr_token == TEST_QR_TOKEN
+    shared_device = False if is_test_qr else flag_shared_device(db, student.id, session.id, device_id)
+    if shared_device:
+        db.commit()
+        raise HTTPException(
+            409,
+            "Thiết bị này đã được dùng điểm danh cho sinh viên khác trong cùng buổi học",
+        )
     attendance = Attendance(
         student_id=student.id,
         session_id=session.id,
         method="QR",
         status=status,
         device_id=device_id,
-        review_note=(
-            "Cảnh báo: Thiết bị này đã được dùng điểm danh cho sinh viên khác trong cùng buổi học."
-            if shared_device else None
-        ),
     )
     db.add(attendance)
     try:

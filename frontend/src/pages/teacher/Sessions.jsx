@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, ArrowRight, CalendarPlus, CheckCircle2, Clock3, Copy, MapPin, Maximize2, QrCode, RefreshCw, UserCheck, UserX, Users, X } from 'lucide-react';
+import { ArrowRight, CalendarPlus, CheckCircle2, Clock3, Copy, MapPin, Maximize2, QrCode, RefreshCw, UserCheck, UserX, Users, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { api } from '../../lib/api';
 import { EmptyState, SectionHeading } from '../../components';
@@ -258,11 +258,6 @@ export function Sessions() {
                 <div className="min-w-0">
                   <p className="font-bold text-slate-900">{attendance.full_name}</p>
                   <p className="text-sm text-slate-500">{attendance.student_code} · {attendance.class_name || 'Chưa có lớp'}</p>
-                  {attendance.review_note && (
-                    <p className="session-attendance-warning">
-                      <AlertTriangle size={13} />{attendance.review_note}
-                    </p>
-                  )}
                 </div>
                 <div className="session-attendance-meta">
                   <span>{attendance.method}</span>
