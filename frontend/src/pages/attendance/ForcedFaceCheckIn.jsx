@@ -275,10 +275,11 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || 'Không thể check-in khuôn mặt');
       setMessage(`✅ ${data.message}`);
-      
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
+      if (['present', 'late'].includes(data.status)) {
+        setTimeout(() => {
+          onComplete(data);
+        }, 1200);
+      }
     } catch (error) {
       setMessage(`❌ ${error.message}`);
     } finally {

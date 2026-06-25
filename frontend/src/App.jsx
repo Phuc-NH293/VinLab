@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Activity, ArrowRight, LogOut, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, LockKeyhole, LogOut, Sparkles } from 'lucide-react';
 
 import { api, clearSession, getStoredUser } from './lib/api';
 
@@ -40,9 +40,13 @@ export function App() {
   const [requireFaceAttendance, setRequireFaceAttendance] = useState(false);
   const [activeSessionForForcedCheckin, setActiveSessionForForcedCheckin] = useState(null);
   const [checkingAttendance, setCheckingAttendance] = useState(false);
+  const [aiTutorUnlocked, setAiTutorUnlocked] = useState(false);
+  const attendanceGateLockedRef = useRef(true);
 
   const visibleNavigation = navigation.filter(item => item.roles.includes(currentUser?.role));
-  const activeTab = isTabAllowed(tab, currentUser?.role) ? tab : defaultTabForRole(currentUser?.role);
+  const aiTutorLocked = currentUser?.role === 'student' && !aiTutorUnlocked;
+  const allowedTab = isTabAllowed(tab, currentUser?.role) ? tab : defaultTabForRole(currentUser?.role);
+  const activeTab = aiTutorLocked && allowedTab === 'socraticDashboard' ? 'checkin' : allowedTab;
   const meta = pageMeta[activeTab] || pageMeta.checkin;
   const PageIcon = meta.icon;
 
@@ -81,6 +85,8 @@ export function App() {
       setCurrentUser(null);
       setViewingWelcome(true);
       setTab('checkin');
+      setAiTutorUnlocked(false);
+      attendanceGateLockedRef.current = true;
       window.history.replaceState({}, '', '/welcome');
     }
     window.addEventListener('vinlab-auth-expired', handleExpiredSession);
@@ -114,6 +120,8 @@ export function App() {
     if (currentUser?.role !== 'student' || !studentFaceProfile?.enrolled) {
       setRequireFaceAttendance(false);
       setActiveSessionForForcedCheckin(null);
+      setAiTutorUnlocked(false);
+      attendanceGateLockedRef.current = true;
       setCheckingAttendance(false);
       return;
     }
@@ -135,6 +143,12 @@ export function App() {
           if (active) {
             setRequireFaceAttendance(false);
             setActiveSessionForForcedCheckin(null);
+            setAiTutorUnlocked(false);
+            attendanceGateLockedRef.current = true;
+            setTab(current => current === 'socraticDashboard' ? 'checkin' : current);
+            if (window.location.pathname.startsWith(tabPaths.socraticDashboard)) {
+              window.history.replaceState({}, '', tabPaths.checkin);
+            }
             setCheckingAttendance(false);
           }
           return;
@@ -145,16 +159,29 @@ export function App() {
         const history = await api('/student/attendance-history');
         const hasCheckedIn = history.some(
           att => att.session_id === activeSession.id &&
-          (att.status === 'present' || att.status === 'pending_review' || att.status === 'excused')
+          att.method === 'FACE' &&
+          (att.status === 'present' || att.status === 'late' || att.status === 'excused')
         );
 
         if (active) {
           if (hasCheckedIn) {
+            setAiTutorUnlocked(true);
             setRequireFaceAttendance(false);
-            setActiveSessionForForcedCheckin(null);
+            setActiveSessionForForcedCheckin(activeSession);
+            if (attendanceGateLockedRef.current) {
+              attendanceGateLockedRef.current = false;
+              setTab('socraticDashboard');
+              window.history.replaceState({}, '', tabPaths.socraticDashboard);
+            }
           } else {
+            setAiTutorUnlocked(false);
+            attendanceGateLockedRef.current = true;
             setRequireFaceAttendance(true);
             setActiveSessionForForcedCheckin(activeSession);
+            setTab(current => current === 'socraticDashboard' ? 'checkin' : current);
+            if (window.location.pathname.startsWith(tabPaths.socraticDashboard)) {
+              window.history.replaceState({}, '', tabPaths.checkin);
+            }
           }
         }
       } catch (error) {
@@ -165,9 +192,14 @@ export function App() {
     }
 
     verifyCheckIn();
+    const attendanceTimer = window.setInterval(verifyCheckIn, 30000);
+    const handleFocus = () => verifyCheckIn();
+    window.addEventListener('focus', handleFocus);
 
     return () => {
       active = false;
+      window.clearInterval(attendanceTimer);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [currentUser?.id, studentFaceProfile?.enrolled]);
 
@@ -176,11 +208,14 @@ export function App() {
     setCurrentUser(null);
     setViewingWelcome(true);
     setTab('checkin');
+    setAiTutorUnlocked(false);
+    attendanceGateLockedRef.current = true;
     window.history.replaceState({}, '', '/welcome');
   }
 
   function openTab(nextTab) {
     if (!isTabAllowed(nextTab, currentUser?.role)) return;
+    if (nextTab === 'socraticDashboard' && aiTutorLocked) return;
     setTab(nextTab);
     window.history.pushState({}, '', tabPaths[nextTab]);
   }
@@ -242,9 +277,13 @@ export function App() {
         currentUser={currentUser}
         session={activeSessionForForcedCheckin}
         onLogout={handleLogout}
-        onComplete={() => {
+        onComplete={result => {
+          if (!['present', 'late'].includes(result?.status)) return;
+          setAiTutorUnlocked(true);
+          attendanceGateLockedRef.current = false;
           setRequireFaceAttendance(false);
-          setActiveSessionForForcedCheckin(null);
+          setTab('socraticDashboard');
+          window.history.replaceState({}, '', tabPaths.socraticDashboard);
         }}
       />
     );
@@ -278,23 +317,28 @@ export function App() {
               Không gian làm việc
             </p>
             <nav className="space-y-2">
-              {visibleNavigation.map(({ id, label, description, icon: Icon }) => (
+              {visibleNavigation.map(({ id, label, description, icon: Icon }) => {
+                const locked = id === 'socraticDashboard' && aiTutorLocked;
+                return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => openTab(id)}
-                  className={`nav-item ${activeTab === id ? 'nav-item-active' : ''}`}
+                  disabled={locked}
+                  title={locked ? 'Check-in khuôn mặt thành công để mở khóa' : undefined}
+                  className={`nav-item ${activeTab === id ? 'nav-item-active' : ''} ${locked ? 'nav-item-locked' : ''}`}
                 >
                   <span className="nav-icon"><Icon size={20} strokeWidth={2.3} /></span>
                   <span className="min-w-0 text-left">
                     <span className="block font-bold">{label}</span>
                     <span className={`block text-xs ${activeTab === id ? 'text-white/70' : 'text-slate-400'}`}>
-                      {description}
+                      {locked ? 'Check-in FACE để mở khóa' : description}
                     </span>
                   </span>
-                  <ArrowRight className="ml-auto opacity-60" size={16} />
+                  {locked ? <LockKeyhole className="ml-auto opacity-60" size={16} /> : <ArrowRight className="ml-auto opacity-60" size={16} />}
                 </button>
-              ))}
+                );
+              })}
             </nav>
 
             <div className="sidebar-highlight">
@@ -344,17 +388,21 @@ export function App() {
         className="mobile-nav lg:hidden"
         style={{ gridTemplateColumns: `repeat(${visibleNavigation.length}, minmax(0, 1fr))` }}
       >
-        {visibleNavigation.map(({ id, label, icon: Icon }) => (
+        {visibleNavigation.map(({ id, label, icon: Icon }) => {
+          const locked = id === 'socraticDashboard' && aiTutorLocked;
+          return (
           <button
             key={id}
             type="button"
             onClick={() => openTab(id)}
-            className={`mobile-nav-item ${activeTab === id ? 'mobile-nav-active' : ''}`}
+            disabled={locked}
+            className={`mobile-nav-item ${activeTab === id ? 'mobile-nav-active' : ''} ${locked ? 'mobile-nav-locked' : ''}`}
           >
-            <Icon size={21} strokeWidth={2.4} />
+            {locked ? <LockKeyhole size={21} strokeWidth={2.4} /> : <Icon size={21} strokeWidth={2.4} />}
             <span>{label}</span>
           </button>
-        ))}
+          );
+        })}
       </nav>
     </div>
   );

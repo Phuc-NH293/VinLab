@@ -97,6 +97,14 @@ button {
   @apply text-white;
 }
 
+.nav-item-locked {
+  @apply cursor-not-allowed border border-slate-100 bg-slate-50/80 text-slate-400 opacity-75;
+}
+
+.nav-item-locked:hover {
+  @apply bg-slate-50 text-slate-400;
+}
+
 .nav-icon {
   @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500;
 }
@@ -1291,6 +1299,10 @@ button {
   box-shadow:
     0 -12px 38px rgba(30, 41, 59, 0.14),
     0 -2px 8px rgba(30, 41, 59, 0.06);
+}
+
+.mobile-nav-locked {
+  @apply cursor-not-allowed text-slate-300 opacity-70;
 }
 
 .mobile-nav-item {
