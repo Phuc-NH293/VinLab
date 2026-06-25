@@ -3,15 +3,25 @@ from pathlib import Path
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-if os.getenv("VERCEL"):
-    database_path = Path("/tmp/lab_attendance.db")
-else:
-    database_path = Path(__file__).resolve().parents[1] / "lab_attendance.db"
+database_path = Path(__file__).resolve().parents[1] / "lab_attendance.db"
+raw_database_url = os.getenv("DATABASE_URL", "").strip()
 
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{database_path.as_posix()}")
+if os.getenv("VERCEL") and not raw_database_url:
+    raise RuntimeError(
+        "DATABASE_URL is required on Vercel. Configure a persistent PostgreSQL database."
+    )
+
+if raw_database_url.startswith("postgres://"):
+    raw_database_url = raw_database_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif raw_database_url.startswith("postgresql://"):
+    raw_database_url = raw_database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+DATABASE_URL = raw_database_url or f"sqlite:///{database_path.as_posix()}"
+IS_SQLITE = DATABASE_URL.startswith("sqlite")
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    connect_args={"check_same_thread": False} if IS_SQLITE else {},
+    pool_pre_ping=not IS_SQLITE,
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -26,7 +36,7 @@ def get_db():
         db.close()
 
 def ensure_schema_columns():
-    """Small SQLite-compatible migration layer for the local MVP database."""
+    """Small cross-database migration layer for existing MVP databases."""
     additions = {
         "lab_sessions": {
             "class_id": "INTEGER",
@@ -38,12 +48,6 @@ def ensure_schema_columns():
             "confidence_score": "FLOAT",
             "device_id": "VARCHAR",
             "review_note": "TEXT",
-        },
-        "users": {
-            "email": "VARCHAR",
-        },
-        "users": {
-            "email": "VARCHAR",
         },
         "users": {
             "email": "VARCHAR",

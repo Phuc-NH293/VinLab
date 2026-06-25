@@ -39,6 +39,12 @@ $env:GEMINI_MODEL="gemini-2.5-flash" # không bắt buộc
 AI Chat sẽ ưu tiên đọc PDF slide của bài học và trả về trích dẫn theo số trang. Nếu slide
 không có thông tin liên quan hoặc chưa được tải lên, Gemini sẽ trả lời bằng kiến thức chung.
 
+### Database production
+
+Local development mặc định dùng `backend/lab_attendance.db`. Khi chạy trên Vercel, backend
+bắt buộc phải có `DATABASE_URL` trỏ tới PostgreSQL; ứng dụng không dùng SQLite tạm trong
+`/tmp` để tránh mất mã QR và dữ liệu giữa các request.
+
 ## Chạy frontend
 ```bash
 cd frontend
