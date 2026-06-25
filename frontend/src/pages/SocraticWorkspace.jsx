@@ -226,7 +226,7 @@ export function SocraticWorkspace() {
       title: 'Retrieval-Augmented Generation (RAG)',
       mastery: 30,
       status: 'Cần cải thiện',
-      statusClass: 'text-red-500 bg-red-50/50 border-red-100',
+      statusClass: 'text-blue-700 bg-blue-50/50 border-blue-100',
       description: 'Mô hình kết hợp truy xuất thông tin từ bên ngoài vào bối cảnh của LLM để giảm thiểu ảo tưởng và cập nhật tri thức mới.',
       skills: [
         { name: 'Semantic Chunking & Overlap', ok: false },
@@ -506,7 +506,7 @@ export function SocraticWorkspace() {
                 <h3 className="socratic-card-title">📖 Lộ trình đang học</h3>
                 <div className="flex justify-between items-center gap-4">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest">Đang hoạt động</span>
+                    <span className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">Đang hoạt động</span>
                     <h4 className="text-sm font-black text-slate-800">Bài 04 · Thiết kế câu lệnh và gọi công cụ</h4>
                     <p className="text-xs text-slate-500">Tìm hiểu vai trò của System Prompt, cách cấu trúc câu lệnh và liên kết công cụ bên ngoài.</p>
                   </div>
@@ -522,10 +522,10 @@ export function SocraticWorkspace() {
                   <div>
                     <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
                       <span>RAG Workflow (Truy xuất ngữ nghĩa)</span>
-                      <span className="text-red-500">30% thông thạo</span>
+                      <span className="text-blue-700">30% thông thạo</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-red-500 h-full rounded-full" style={{ width: '30%' }} />
+                      <div className="bg-blue-700 h-full rounded-full" style={{ width: '30%' }} />
                     </div>
                   </div>
                   <div>
@@ -601,21 +601,21 @@ export function SocraticWorkspace() {
             <div className="lg:hidden px-4 py-3 border-b border-slate-100 flex gap-2 overflow-x-auto bg-slate-50/30">
               <button
                 type="button"
-                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'prompt_design' ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md shadow-red-600/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'prompt_design' ? 'bg-gradient-to-r from-blue-800 to-sky-500 text-white shadow-md shadow-blue-800/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                 onClick={() => setChatTopic('prompt_design')}
               >
                 💬 Prompt Design
               </button>
               <button
                 type="button"
-                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'rag_basics' ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md shadow-red-600/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'rag_basics' ? 'bg-gradient-to-r from-blue-800 to-sky-500 text-white shadow-md shadow-blue-800/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                 onClick={() => setChatTopic('rag_basics')}
               >
                 📚 RAG & Vector
               </button>
               <button
                 type="button"
-                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'ai_agents' ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md shadow-red-600/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${chatTopic === 'ai_agents' ? 'bg-gradient-to-r from-blue-800 to-sky-500 text-white shadow-md shadow-blue-800/25' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                 onClick={() => setChatTopic('ai_agents')}
               >
                 🤖 AI Agents & MCP
@@ -633,7 +633,7 @@ export function SocraticWorkspace() {
                   role="switch"
                   aria-checked={socraticMode}
                   className="w-9 h-5 rounded-full relative transition-colors cursor-pointer bg-slate-300"
-                  style={{ backgroundColor: socraticMode ? '#ef4444' : '#cbd5e1' }}
+                  style={{ backgroundColor: socraticMode ? '#1557b0' : '#cbd5e1' }}
                   onClick={() => setSocraticMode(!socraticMode)}
                 >
                   <span
@@ -881,7 +881,7 @@ export function SocraticWorkspace() {
                 {/* Node 3: RAG */}
                 <button
                   type="button"
-                  className={`absolute p-3 rounded-full border flex items-center justify-center font-black transition-all cursor-pointer shadow-md ${selectedNode === 'rag' ? 'bg-red-500 text-white border-red-600 scale-110 ring-4 ring-red-100' : 'bg-white text-red-500 border-red-200 hover:bg-red-50'}`}
+                  className={`absolute p-3 rounded-full border flex items-center justify-center font-black transition-all cursor-pointer shadow-md ${selectedNode === 'rag' ? 'bg-blue-700 text-white border-blue-800 scale-110 ring-4 ring-blue-100' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'}`}
                   style={{ left: '75%', top: '42%', zIndex: 1 }}
                   onClick={() => setSelectedNode('rag')}
                   title="RAG Workflow"
@@ -973,7 +973,7 @@ export function SocraticWorkspace() {
           {!quizActive ? (
             <section className="card max-w-xl mx-auto space-y-4">
               <div className="text-center space-y-2">
-                <FileCheck className="mx-auto text-red-600" size={32} />
+                <FileCheck className="mx-auto text-blue-700" size={32} />
                 <h3 className="text-lg font-black text-slate-800">Kiểm tra năng lực AI Cơ bản</h3>
                 <p className="text-xs text-slate-500">Bài thi trắc nghiệm ngắn gồm 3 câu hỏi để kiểm tra kiến thức về các mô hình LLM, RAG và MCP.</p>
               </div>
@@ -993,7 +993,7 @@ export function SocraticWorkspace() {
               {quizScore === null ? (
                 <>
                   <div className="socratic-quiz-header">
-                    <span className="text-xs font-bold text-red-600">Câu hỏi {quizStep + 1}/3</span>
+                    <span className="text-xs font-bold text-blue-700">Câu hỏi {quizStep + 1}/3</span>
                     <span className="text-xs font-bold text-slate-400">Đang thực hiện</span>
                   </div>
 
@@ -1078,7 +1078,7 @@ export function SocraticWorkspace() {
             <div className="socratic-leaderboard-row socratic-leaderboard-row-highlight">
               <div className="socratic-leaderboard-left">
                 <span className="socratic-leaderboard-num">4</span>
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center font-bold text-red-600 text-xs">U</div>
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700 text-xs">U</div>
                 <span className="socratic-leaderboard-name">Bạn (Sinh viên)</span>
               </div>
               <span className="socratic-leaderboard-xp">1,240 XP</span>

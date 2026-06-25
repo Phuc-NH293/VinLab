@@ -69,7 +69,7 @@ export function WelcomeScreen({ onGoToLogin }) {
             <div className="welcome-scan-line" />
             <div className="welcome-scan-status">
               <div>
-                <span className="block font-bold text-red-500">📍 PHÒNG LAB 402</span>
+                <span className="block font-bold text-blue-700">📍 PHÒNG LAB 402</span>
                 <span className="block text-[10px] text-slate-400">Mã: SV1029 — Độ trùng khớp: 98.6%</span>
               </div>
               <span className="rounded-md bg-emerald-500/20 px-2 py-1 text-[10px] font-black text-emerald-400">

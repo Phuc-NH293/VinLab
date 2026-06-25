@@ -336,7 +336,7 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
             <div className="absolute inset-0 pointer-events-none border border-white/10 rounded-2xl" />
             
             {!preview && cameraReady && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-dashed border-red-500/60 rounded-full flex items-center justify-center">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-dashed border-blue-500/60 rounded-full flex items-center justify-center">
                 <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Đặt khuôn mặt vào đây</span>
               </div>
             )}
@@ -414,7 +414,7 @@ export function ForcedFaceCheckIn({ currentUser, session, onComplete, onLogout }
             <span className="text-[11px] font-bold text-slate-400">Đang đăng nhập: {currentUser.full_name}</span>
             <button
               type="button"
-              className="text-xs font-bold text-red-600 hover:text-red-500"
+              className="text-xs font-bold text-blue-200 hover:text-white"
               onClick={onLogout}
             >
               Đăng xuất

@@ -169,7 +169,7 @@ export function stampCaptureMetadata(canvas, metadata) {
   context.fillStyle = gradient;
   context.fillRect(0, y, canvas.width, bandHeight);
 
-  context.fillStyle = '#ef4444';
+  context.fillStyle = '#1557b0';
   context.fillRect(0, y, Math.round(7 * scale), bandHeight);
 
   context.textAlign = 'left';

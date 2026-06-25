@@ -335,7 +335,7 @@ export function AdminDashboard() {
               <button className="btn w-full" type="submit"><GraduationCap size={17} />Lưu lớp học</button>
             </div>
             <div className="mt-5 space-y-2">
-              {classes.map(item => <div className="admin-list-row" key={item.id}><GraduationCap className="text-red-500" /><div><p>{item.code} · {item.name}</p><span>{item.student_count} sinh viên</span></div></div>)}
+              {classes.map(item => <div className="admin-list-row" key={item.id}><GraduationCap className="text-blue-700" /><div><p>{item.code} · {item.name}</p><span>{item.student_count} sinh viên</span></div></div>)}
             </div>
           </form>
           <form className="card" onSubmit={createSubject}>
@@ -384,7 +384,7 @@ export function AdminDashboard() {
           </form>
           <section className="card">
             <SectionHeading icon={Clock3} kicker="Lịch đang quản lý" title="Các buổi học" />
-            <div className="mt-5 space-y-2">{sessions.map(session => <div className="admin-list-row" key={session.id}><CalendarPlus className="text-red-500" /><div><p>{session.title}</p><span>{session.room} · {new Date(session.start_time).toLocaleString('vi-VN')}</span></div><button className="btn-secondary" type="button" onClick={() => editSession(session)}>Sửa</button><button className="icon-danger" type="button" onClick={() => deleteSession(session.id)}><Trash2 size={17} /></button></div>)}</div>
+            <div className="mt-5 space-y-2">{sessions.map(session => <div className="admin-list-row" key={session.id}><CalendarPlus className="text-blue-700" /><div><p>{session.title}</p><span>{session.room} · {new Date(session.start_time).toLocaleString('vi-VN')}</span></div><button className="btn-secondary" type="button" onClick={() => editSession(session)}>Sửa</button><button className="icon-danger" type="button" onClick={() => deleteSession(session.id)}><Trash2 size={17} /></button></div>)}</div>
           </section>
         </div>
       )}

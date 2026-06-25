@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -17,7 +17,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 8% 4%, rgba(239, 68, 68, 0.08), transparent 24rem),
+    radial-gradient(circle at 8% 4%, rgba(21, 87, 176, 0.08), transparent 24rem),
     radial-gradient(circle at 94% 28%, rgba(6, 182, 212, 0.08), transparent 26rem),
     #f7f8fc;
 }
@@ -40,7 +40,7 @@ button {
 }
 
 .ambient-one {
-  @apply -left-40 top-40 h-80 w-80 bg-red-200/30;
+  @apply -left-40 top-40 h-80 w-80 bg-blue-200/30;
 }
 
 .ambient-two {
@@ -62,7 +62,7 @@ button {
 }
 
 .brand-pill {
-  @apply rounded-md bg-red-50 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-red-600;
+  @apply rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-blue-700;
 }
 
 .status-pill {
@@ -70,7 +70,7 @@ button {
 }
 
 .logout-button {
-  @apply flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600;
+  @apply flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700;
 }
 
 .status-dot {
@@ -89,8 +89,8 @@ button {
 }
 
 .nav-item-active {
-  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white;
-  box-shadow: 0 12px 26px rgba(225, 29, 72, 0.24);
+  @apply bg-gradient-to-r from-blue-800 to-sky-500 text-white;
+  box-shadow: 0 12px 26px rgba(21, 87, 176, 0.24);
 }
 
 .nav-item-active:hover {
@@ -111,12 +111,12 @@ button {
 
 .sidebar-highlight::after {
   content: "";
-  @apply absolute -bottom-10 -right-8 h-28 w-28 rounded-full bg-red-500/40 blur-2xl;
+  @apply absolute -bottom-10 -right-8 h-28 w-28 rounded-full bg-blue-600/40 blur-2xl;
 }
 
 .hero-panel {
-  @apply relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 px-6 py-8 text-white sm:px-9 sm:py-10;
-  box-shadow: 0 24px 60px rgba(225, 29, 72, 0.23);
+  @apply relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-blue-900 via-blue-700 to-sky-500 px-6 py-8 text-white sm:px-9 sm:py-10;
+  box-shadow: 0 24px 60px rgba(21, 87, 176, 0.23);
 }
 
 .hero-panel h2 {
@@ -167,8 +167,8 @@ button {
 }
 
 .camera-permission-icon {
-  @apply mb-5 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-gradient-to-br from-red-600 to-orange-500 text-white;
-  box-shadow: 0 16px 35px rgba(225, 29, 72, 0.28);
+  @apply mb-5 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-gradient-to-br from-blue-800 to-sky-500 text-white;
+  box-shadow: 0 16px 35px rgba(21, 87, 176, 0.28);
 }
 
 .camera-permission-card h3 {
@@ -192,11 +192,11 @@ button {
 }
 
 .section-icon {
-  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600;
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700;
 }
 
 .section-kicker {
-  @apply text-[10px] font-black uppercase tracking-[0.2em] text-red-500;
+  @apply text-[10px] font-black uppercase tracking-[0.2em] text-blue-600;
 }
 
 .section-heading h3 {
@@ -212,7 +212,7 @@ button {
 }
 
 .input {
-  @apply w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-semibold normal-case tracking-normal text-slate-900 outline-none transition placeholder:font-medium placeholder:text-slate-400 hover:border-slate-300 focus:border-red-400 focus:bg-white focus:ring-4 focus:ring-red-100;
+  @apply w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-semibold normal-case tracking-normal text-slate-900 outline-none transition placeholder:font-medium placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100;
 }
 
 .input:disabled {
@@ -228,11 +228,11 @@ button {
 }
 
 .page-error {
-  @apply flex items-start gap-4 border-red-100 bg-red-50/70;
+  @apply flex items-start gap-4 border-blue-100 bg-blue-50/70;
 }
 
 .page-error-icon {
-  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600;
+  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700;
 }
 
 .page-error h3 {
@@ -248,11 +248,11 @@ button {
 }
 
 .root-error-panel {
-  @apply w-full max-w-lg rounded-3xl border border-red-100 bg-white p-8 text-center shadow-xl;
+  @apply w-full max-w-lg rounded-3xl border border-blue-100 bg-white p-8 text-center shadow-xl;
 }
 
 .root-error-panel > svg {
-  @apply mx-auto text-red-600;
+  @apply mx-auto text-blue-700;
 }
 
 .root-error-panel h1 {
@@ -266,7 +266,7 @@ button {
 .face-setup-page {
   @apply min-h-screen bg-slate-50;
   background:
-    radial-gradient(circle at 10% 10%, rgba(239, 68, 68, 0.1), transparent 25rem),
+    radial-gradient(circle at 10% 10%, rgba(21, 87, 176, 0.1), transparent 25rem),
     radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.1), transparent 26rem),
     #f7f8fc;
 }
@@ -292,7 +292,7 @@ button {
 }
 
 .face-setup-icon {
-  @apply mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-200;
+  @apply mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-800 text-white shadow-lg shadow-blue-200;
 }
 
 .face-setup-intro h1 {
@@ -312,11 +312,11 @@ button {
 }
 
 .face-setup-steps b {
-  @apply flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600;
+  @apply flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-700;
 }
 
 .face-enrollment-required {
-  @apply border-red-100;
+  @apply border-blue-100;
   box-shadow: 0 24px 70px rgba(44, 54, 83, 0.13);
 }
 
@@ -329,7 +329,7 @@ button {
 }
 
 .login-ambient-one {
-  @apply -left-32 -top-32 h-96 w-96 bg-red-300/25;
+  @apply -left-32 -top-32 h-96 w-96 bg-blue-300/25;
 }
 
 .login-ambient-two {
@@ -337,7 +337,7 @@ button {
 }
 
 .login-brand-panel {
-  @apply relative z-10 hidden min-h-screen flex-col overflow-hidden bg-gradient-to-br from-red-700 via-rose-600 to-orange-500 p-12 text-white lg:flex;
+  @apply relative z-10 hidden min-h-screen flex-col overflow-hidden bg-gradient-to-br from-blue-950 via-blue-800 to-sky-600 p-12 text-white lg:flex;
 }
 
 .login-brand-panel::before,
@@ -404,11 +404,11 @@ button {
 }
 
 .demo-accounts button {
-  @apply mb-2 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-left transition hover:border-red-100 hover:bg-red-50;
+  @apply mb-2 flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-left transition hover:border-blue-100 hover:bg-blue-50;
 }
 
 .demo-accounts button > svg {
-  @apply shrink-0 text-red-500;
+  @apply shrink-0 text-blue-600;
 }
 
 .demo-accounts button span {
@@ -424,16 +424,16 @@ button {
 }
 
 .btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-3 text-sm font-extrabold text-white transition duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none;
-  box-shadow: 0 12px 25px rgba(225, 29, 72, 0.22);
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-800 to-sky-500 px-5 py-3 text-sm font-extrabold text-white transition duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none;
+  box-shadow: 0 12px 25px rgba(21, 87, 176, 0.22);
 }
 
 .btn:hover:not(:disabled) {
-  box-shadow: 0 15px 30px rgba(225, 29, 72, 0.3);
+  box-shadow: 0 15px 30px rgba(21, 87, 176, 0.3);
 }
 
 .btn-secondary {
-  @apply inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-[0.99];
+  @apply inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:scale-[0.99];
 }
 
 .count-badge {
@@ -441,11 +441,11 @@ button {
 }
 
 .student-row {
-  @apply flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3 transition hover:border-red-100 hover:bg-red-50/40;
+  @apply flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3 transition hover:border-blue-100 hover:bg-blue-50/40;
 }
 
 .student-avatar {
-  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-orange-400 font-black text-white;
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-700 to-sky-400 font-black text-white;
 }
 
 .student-photo {
@@ -479,7 +479,7 @@ button {
 }
 
 .teacher-stat-red > span {
-  @apply bg-red-50 text-red-600;
+  @apply bg-blue-50 text-blue-700;
 }
 
 .teacher-stat-cyan > span {
@@ -503,7 +503,7 @@ button {
 }
 
 .search-field {
-  @apply flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 text-slate-400 transition focus-within:border-red-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-red-100;
+  @apply flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 text-slate-400 transition focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100;
 }
 
 .search-field input {
@@ -519,11 +519,11 @@ button {
 }
 
 .teacher-filter-tabs button {
-  @apply rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-slate-500 transition hover:text-red-600;
+  @apply rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-slate-500 transition hover:text-blue-700;
 }
 
 .teacher-filter-tabs .teacher-filter-active {
-  @apply bg-red-600 text-white shadow-lg shadow-red-200 hover:text-white;
+  @apply bg-blue-800 text-white shadow-lg shadow-blue-200 hover:text-white;
 }
 
 .teacher-roster {
@@ -531,7 +531,7 @@ button {
 }
 
 .teacher-student-row {
-  @apply grid items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition hover:border-red-100 hover:bg-red-50/20 md:grid-cols-[auto_minmax(160px,1fr)_minmax(140px,0.8fr)_auto_auto_auto];
+  @apply grid items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition hover:border-blue-100 hover:bg-blue-50/20 md:grid-cols-[auto_minmax(160px,1fr)_minmax(140px,0.8fr)_auto_auto_auto];
 }
 
 .teacher-student-info {
@@ -583,7 +583,7 @@ button {
 }
 
 .attendance-remove {
-  @apply bg-red-50 text-red-600 hover:bg-red-100;
+  @apply bg-blue-50 text-blue-700 hover:bg-blue-100;
 }
 
 .bface-thumbnail {
@@ -599,7 +599,7 @@ button {
 }
 
 .attendance-review-actions button {
-  @apply flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-red-50 hover:text-red-600;
+  @apply flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-blue-50 hover:text-blue-700;
 }
 
 .report-table-wrap {
@@ -641,7 +641,7 @@ button {
 }
 
 .schedule-date {
-  @apply flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-red-50 text-red-600;
+  @apply flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-blue-50 text-blue-700;
 }
 
 .schedule-date strong {
@@ -689,7 +689,7 @@ button {
 }
 
 .request-rejected {
-  @apply text-red-600;
+  @apply text-blue-700;
 }
 
 .enrollment-camera {
@@ -755,11 +755,11 @@ button {
 }
 
 .compact-select {
-  @apply rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-red-400;
+  @apply rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-blue-500;
 }
 
 .icon-danger {
-  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-100;
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 transition hover:bg-blue-100;
 }
 
 .alert-row {
@@ -811,7 +811,7 @@ button {
 }
 
 .chip-0 {
-  @apply bg-red-50 text-red-600;
+  @apply bg-blue-50 text-blue-700;
 }
 
 .chip-1 {
@@ -915,7 +915,7 @@ button {
 }
 
 .qr-presentation-card p {
-  color: #ef4444;
+  color: #1557b0;
   font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -1056,11 +1056,11 @@ button {
 }
 
 .scanner-retry svg {
-  @apply text-red-400;
+  @apply text-blue-500;
 }
 
 .scanner-retry button {
-  @apply rounded-xl bg-red-600 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-red-500;
+  @apply rounded-xl bg-blue-800 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-blue-600;
 }
 
 .result-message {
@@ -1068,11 +1068,11 @@ button {
 }
 
 .result-message.enrollment-error {
-  @apply flex flex-col items-start gap-3 border-red-100 bg-red-50 sm:flex-row sm:items-center sm:justify-between;
+  @apply flex flex-col items-start gap-3 border-blue-100 bg-blue-50 sm:flex-row sm:items-center sm:justify-between;
 }
 
 .enrollment-retry-button {
-  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-red-500;
+  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-800 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-blue-600;
 }
 
 .capture-preview {
@@ -1113,12 +1113,12 @@ button {
 }
 
 .checkin-method-active {
-  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white;
-  box-shadow: 0 12px 26px rgba(225, 29, 72, 0.22);
+  @apply bg-gradient-to-r from-blue-800 to-sky-500 text-white;
+  box-shadow: 0 12px 26px rgba(21, 87, 176, 0.22);
 }
 
 .checkin-method-active:hover {
-  @apply bg-gradient-to-r from-red-600 to-rose-500;
+  @apply bg-gradient-to-r from-blue-800 to-sky-500;
 }
 
 .checkin-method-active > span {
@@ -1163,7 +1163,7 @@ button {
   border: 5px solid transparent;
   background:
     linear-gradient(#0f172a, #0f172a) padding-box,
-    linear-gradient(135deg, #ef4444, #f97316 48%, #06b6d4) border-box;
+    linear-gradient(135deg, #1557b0, #0ea5e9 48%, #06b6d4) border-box;
   box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
 }
 
@@ -1183,7 +1183,7 @@ button {
 }
 
 .corner {
-  @apply absolute h-12 w-12 border-red-400;
+  @apply absolute h-12 w-12 border-blue-500;
 }
 
 .corner-tl {
@@ -1207,7 +1207,7 @@ button {
 }
 
 .timemark-live {
-  @apply pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between gap-3 border-l-4 border-red-500 bg-gradient-to-t from-slate-950 via-slate-950/85 to-transparent px-4 pb-4 pt-12 text-white;
+  @apply pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between gap-3 border-l-4 border-blue-600 bg-gradient-to-t from-slate-950 via-slate-950/85 to-transparent px-4 pb-4 pt-12 text-white;
 }
 
 .timemark-live > div:first-child {
@@ -1219,7 +1219,7 @@ button {
 }
 
 .timemark-live > div:first-child span {
-  @apply mt-1 block text-xs font-bold text-red-300;
+  @apply mt-1 block text-xs font-bold text-blue-300;
 }
 
 .timemark-live > div:last-child {
@@ -1251,7 +1251,7 @@ button {
 }
 
 .face-camera-error svg {
-  @apply text-red-400;
+  @apply text-blue-500;
 }
 
 .face-camera-error p {
@@ -1263,7 +1263,7 @@ button {
 }
 
 .face-camera-error button {
-  @apply mt-1 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-red-500;
+  @apply mt-1 rounded-xl bg-blue-800 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-blue-600;
 }
 
 .liveness-button {
@@ -1310,8 +1310,8 @@ button {
 }
 
 .mobile-nav-active {
-  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white;
-  box-shadow: 0 10px 24px rgba(225, 29, 72, 0.24);
+  @apply bg-gradient-to-r from-blue-800 to-sky-500 text-white;
+  box-shadow: 0 10px 24px rgba(21, 87, 176, 0.24);
 }
 
 .mobile-nav-active:hover {
@@ -1414,7 +1414,7 @@ button {
 .welcome-container {
   min-height: 100vh;
   background: 
-    radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.05), transparent 40rem),
+    radial-gradient(circle at 10% 20%, rgba(11, 42, 91, 0.05), transparent 40rem),
     radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05), transparent 40rem),
     #f8fafc;
 }
@@ -1432,7 +1432,7 @@ button {
 }
 
 .welcome-nav-links a {
-  @apply transition hover:text-red-600;
+  @apply transition hover:text-blue-700;
 }
 
 .welcome-nav-actions {
@@ -1448,7 +1448,7 @@ button {
 }
 
 .welcome-eyebrow {
-  @apply inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-black tracking-wide text-red-600 uppercase;
+  @apply inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-black tracking-wide text-blue-700 uppercase;
 }
 
 .welcome-hero-content h1 {
@@ -1456,7 +1456,7 @@ button {
 }
 
 .welcome-hero-content h1 span {
-  @apply bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-blue-800 to-sky-500 bg-clip-text text-transparent;
 }
 
 .welcome-hero-content p {
@@ -1472,7 +1472,7 @@ button {
   @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition duration-200 cursor-pointer;
 }
 .welcome-btn-primary {
-  @apply bg-gradient-to-r from-red-600 to-rose-500 text-white hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-500/20 hover:scale-[1.02];
+  @apply bg-gradient-to-r from-blue-800 to-sky-500 text-white hover:from-blue-700 hover:to-sky-400 shadow-lg shadow-blue-700/20 hover:scale-[1.02];
 }
 .welcome-btn-secondary {
   @apply border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300;
@@ -1495,12 +1495,12 @@ button {
   @apply absolute inset-0 opacity-20 pointer-events-none;
   background-size: 20px 20px;
   background-image: 
-    linear-gradient(to right, #ef4444 1px, transparent 1px),
-    linear-gradient(to bottom, #ef4444 1px, transparent 1px);
+    linear-gradient(to right, #1557b0 1px, transparent 1px),
+    linear-gradient(to bottom, #1557b0 1px, transparent 1px);
 }
 
 .welcome-scan-line {
-  @apply absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_8px_#ef4444] opacity-80 pointer-events-none;
+  @apply absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-600 to-transparent shadow-[0_0_8px_#1557b0] opacity-80 pointer-events-none;
   animation: scanline 3s infinite ease-in-out;
 }
 
@@ -1532,7 +1532,7 @@ button {
 }
 
 .welcome-section-header h2 span {
-  @apply bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-blue-800 to-sky-500 bg-clip-text text-transparent;
 }
 
 .welcome-section-header p {
@@ -1548,7 +1548,7 @@ button {
 }
 
 .welcome-compare-card-active {
-  @apply border-red-100 bg-gradient-to-b from-red-50/50 to-white;
+  @apply border-blue-100 bg-gradient-to-b from-blue-50/50 to-white;
 }
 
 .welcome-compare-card h3 {
@@ -1556,7 +1556,7 @@ button {
 }
 
 .welcome-compare-card-active h3 {
-  @apply text-red-700;
+  @apply text-blue-800;
 }
 
 .welcome-compare-list {
@@ -1580,7 +1580,7 @@ button {
 }
 
 .welcome-feature-icon {
-  @apply mx-auto w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center;
+  @apply mx-auto w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center;
 }
 
 .welcome-feature-card h3 {
@@ -1604,7 +1604,7 @@ button {
 }
 
 .welcome-timeline-copy h2 span {
-  @apply text-red-500;
+  @apply text-blue-600;
 }
 
 .welcome-timeline-copy p {
@@ -1628,8 +1628,8 @@ button {
 }
 
 .welcome-timeline-active .welcome-timeline-badge {
-  @apply bg-red-600 border-red-500 text-white;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  @apply bg-blue-800 border-blue-600 text-white;
+  box-shadow: 0 0 10px rgba(21, 87, 176, 0.4);
 }
 
 .welcome-timeline-completed .welcome-timeline-badge {
@@ -1653,7 +1653,7 @@ button {
 }
 
 .welcome-cta-section {
-  @apply max-w-5xl mx-auto px-6 py-20 text-center space-y-8 rounded-[2.5rem] bg-gradient-to-r from-red-500 via-red-600 to-rose-700 text-white shadow-2xl shadow-red-500/20 my-12 relative overflow-hidden;
+  @apply max-w-5xl mx-auto px-6 py-20 text-center space-y-8 rounded-[2.5rem] bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950 text-white shadow-2xl shadow-blue-700/20 my-12 relative overflow-hidden;
 }
 
 .welcome-cta-section::before {
@@ -1666,7 +1666,7 @@ button {
 }
 
 .welcome-cta-section p {
-  @apply text-red-50 text-base md:text-lg max-w-xl mx-auto;
+  @apply text-blue-50 text-base md:text-lg max-w-xl mx-auto;
 }
 
 .welcome-footer {
@@ -1694,7 +1694,7 @@ button {
 }
 
 .welcome-footer-links ul a {
-  @apply hover:text-red-600 transition;
+  @apply hover:text-blue-700 transition;
 }
 
 .welcome-copyright {
@@ -1732,11 +1732,11 @@ button {
 }
 
 .socratic-nav-btn-active {
-  @apply bg-red-50 text-red-600;
+  @apply bg-blue-50 text-blue-700;
 }
 
 .socratic-hero-greet {
-  @apply flex flex-col md:flex-row items-center gap-6 rounded-3xl border border-white bg-gradient-to-r from-red-600 to-rose-500 p-6 text-white shadow-xl shadow-red-500/10 mb-6 relative overflow-hidden;
+  @apply flex flex-col md:flex-row items-center gap-6 rounded-3xl border border-white bg-gradient-to-r from-blue-800 to-sky-500 p-6 text-white shadow-xl shadow-blue-700/10 mb-6 relative overflow-hidden;
 }
 
 .socratic-hero-greet::before {
@@ -1753,7 +1753,7 @@ button {
 }
 
 .socratic-hero-greet-text p {
-  @apply text-red-100 text-sm max-w-xl;
+  @apply text-blue-100 text-sm max-w-xl;
 }
 
 .socratic-xp-bar {
@@ -1773,7 +1773,7 @@ button {
 }
 
 .socratic-metric-icon {
-  @apply w-10 h-10 rounded-xl flex items-center justify-center text-red-600 bg-red-50 font-black;
+  @apply w-10 h-10 rounded-xl flex items-center justify-center text-blue-700 bg-blue-50 font-black;
 }
 
 .socratic-metric-info {
@@ -1846,7 +1846,7 @@ button {
 }
 
 .socratic-chat-topic-btn-active {
-  @apply bg-red-50 text-red-600;
+  @apply bg-blue-50 text-blue-700;
 }
 
 .socratic-chat-area {
@@ -1878,7 +1878,7 @@ button {
 }
 
 .socratic-chat-bubble-user {
-  @apply bg-gradient-to-br from-red-600 to-rose-500 text-white self-end ml-auto rounded-tr-none shadow-red-500/5;
+  @apply bg-gradient-to-br from-blue-800 to-sky-500 text-white self-end ml-auto rounded-tr-none shadow-blue-700/5;
 }
 
 .ai-chat-answer {
@@ -1914,7 +1914,7 @@ button {
   display: grid;
   gap: 0.2rem;
   padding: 0.55rem 0.65rem;
-  border-left: 3px solid #ef4444;
+  border-left: 3px solid #1557b0;
   border-radius: 0.5rem;
   background: rgba(248, 250, 252, 0.92);
   color: #475569;
@@ -1923,7 +1923,7 @@ button {
 }
 
 .ai-chat-citation strong {
-  color: #b91c1c;
+  color: #0b2a5b;
   font-size: 0.68rem;
 }
 
@@ -1940,7 +1940,7 @@ button {
 }
 
 .socratic-chat-input {
-  @apply flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs focus:outline-none focus:border-red-500 focus:bg-white;
+  @apply flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs focus:outline-none focus:border-blue-600 focus:bg-white;
 }
 
 /* Roadmap Grid */
@@ -1961,11 +1961,11 @@ button {
 }
 
 .socratic-roadmap-card:focus-visible {
-  @apply outline-none ring-2 ring-red-400 ring-offset-2;
+  @apply outline-none ring-2 ring-blue-400 ring-offset-2;
 }
 
 .socratic-roadmap-card-active {
-  @apply border-red-200 shadow-lg shadow-red-500/5;
+  @apply border-blue-200 shadow-lg shadow-blue-700/5;
 }
 
 .socratic-roadmap-card-locked {
@@ -1985,7 +1985,7 @@ button {
 }
 
 .socratic-roadmap-card-active .socratic-roadmap-state {
-  @apply bg-red-50 text-red-600;
+  @apply bg-blue-50 text-blue-700;
 }
 
 .socratic-roadmap-badge {
@@ -1993,7 +1993,7 @@ button {
 }
 
 .socratic-roadmap-card-active .socratic-roadmap-badge {
-  @apply bg-red-50 text-red-600 border-red-100;
+  @apply bg-blue-50 text-blue-700 border-blue-100;
 }
 
 .socratic-roadmap-card-completed .socratic-roadmap-badge {
@@ -2009,7 +2009,7 @@ button {
 }
 
 .socratic-roadmap-open {
-  @apply inline-flex items-center gap-1 pt-1 text-[11px] font-black text-red-600;
+  @apply inline-flex items-center gap-1 pt-1 text-[11px] font-black text-blue-700;
 }
 
 .socratic-lesson-detail {
@@ -2025,7 +2025,7 @@ button {
 }
 
 .socratic-lesson-kicker {
-  @apply text-[10px] font-black uppercase tracking-[0.2em] text-rose-300;
+  @apply text-[10px] font-black uppercase tracking-[0.2em] text-sky-200;
 }
 
 .socratic-lesson-heading h2 {
@@ -2061,7 +2061,7 @@ button {
 }
 
 .socratic-resource-card-quiz .socratic-resource-icon {
-  @apply bg-rose-50 text-rose-600;
+  @apply bg-sky-50 text-sky-700;
 }
 
 .socratic-resource-meta {
@@ -2157,7 +2157,7 @@ button {
 }
 
 .slide-assistant-avatar {
-  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-500 text-white;
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-700 to-sky-500 text-white;
 }
 
 .slide-assistant-header > div:nth-child(2) {
@@ -2194,7 +2194,7 @@ button {
 }
 
 .slide-assistant-message-user {
-  @apply ml-auto rounded-tr-md bg-gradient-to-br from-red-600 to-rose-500 text-white shadow-sm;
+  @apply ml-auto rounded-tr-md bg-gradient-to-br from-blue-800 to-sky-500 text-white shadow-sm;
 }
 
 .slide-assistant-typing {
@@ -2219,7 +2219,7 @@ button {
 }
 
 .slide-assistant-suggestions button {
-  @apply shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 cursor-pointer;
+  @apply shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-bold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 cursor-pointer;
 }
 
 .slide-assistant-input {
@@ -2227,16 +2227,16 @@ button {
 }
 
 .slide-assistant-input input {
-  @apply min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-red-400 focus:bg-white;
+  @apply min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white;
 }
 
 .slide-assistant-input button {
-  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-500 text-white shadow-md shadow-red-200 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer;
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-800 to-sky-500 text-white shadow-md shadow-blue-200 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer;
 }
 
 .slide-assistant-toggle {
-  @apply flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-black text-white transition hover:-translate-y-1 cursor-pointer;
-  box-shadow: 0 14px 34px rgba(225, 29, 72, 0.34);
+  @apply flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-800 to-sky-500 px-5 text-sm font-black text-white transition hover:-translate-y-1 cursor-pointer;
+  box-shadow: 0 14px 34px rgba(21, 87, 176, 0.34);
 }
 
 .slide-assistant-open .slide-assistant-toggle {
@@ -2295,11 +2295,11 @@ button {
 }
 
 .lesson-slide-picker {
-  @apply mt-2 flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 normal-case tracking-normal text-slate-600 transition hover:border-red-300 hover:bg-red-50/50;
+  @apply mt-2 flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 normal-case tracking-normal text-slate-600 transition hover:border-blue-300 hover:bg-blue-50/50;
 }
 
 .lesson-slide-picker > svg {
-  @apply shrink-0 text-red-500;
+  @apply shrink-0 text-blue-600;
 }
 
 .lesson-slide-picker > span {
@@ -2324,7 +2324,7 @@ button {
 }
 
 .lesson-slide-file-input:focus-visible + .lesson-slide-picker {
-  @apply border-red-400 ring-4 ring-red-100;
+  @apply border-blue-500 ring-4 ring-blue-100;
 }
 
 .lesson-slide-upload > label > small,
@@ -2687,7 +2687,7 @@ button {
 }
 
 .socratic-quiz-option-selected {
-  @apply border-red-500 bg-red-50/50 text-red-700;
+  @apply border-blue-600 bg-blue-50/50 text-blue-800;
 }
 
 .socratic-quiz-option-correct {
@@ -2695,7 +2695,7 @@ button {
 }
 
 .socratic-quiz-option-incorrect {
-  @apply border-rose-500 bg-rose-50/50 text-rose-700;
+  @apply border-sky-500 bg-sky-50/50 text-sky-800;
 }
 
 /* Leaderboard */
@@ -2756,7 +2756,7 @@ button {
 }
 
 .socratic-leaderboard-row-highlight {
-  @apply border-red-100 bg-red-50/30;
+  @apply border-blue-100 bg-blue-50/30;
 }
 
 .socratic-leaderboard-left {
@@ -2776,7 +2776,7 @@ button {
 }
 
 .socratic-leaderboard-row-highlight .socratic-leaderboard-name {
-  @apply text-red-700;
+  @apply text-blue-800;
 }
 
 .socratic-leaderboard-xp {
