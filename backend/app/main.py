@@ -862,6 +862,12 @@ def check_in(
         ).first()
         if not enrolled:
             raise HTTPException(403, "Student is not enrolled in this class")
+    existing_attendance = db.query(Attendance).filter(
+        Attendance.student_id == student.id,
+        Attendance.session_id == session.id,
+    ).first()
+    if existing_attendance:
+        raise HTTPException(409, "Bạn đã điểm danh buổi học này rồi")
     now = datetime.utcnow()
     if not (session.start_time <= now <= session.end_time):
         raise HTTPException(400, "Ngoài thời gian điểm danh")
@@ -878,14 +884,14 @@ def check_in(
         device_id=device_id,
     )
     db.add(attendance)
-    db.flush()
-    add_log(db, current_user, "qr_check_in", "attendance", attendance.id, {"status": status})
-    flag_overlapping_attendance(db, student.id, session)
     try:
+        db.flush()
+        add_log(db, current_user, "qr_check_in", "attendance", attendance.id, {"status": status})
+        flag_overlapping_attendance(db, student.id, session)
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(400, "Sinh viên đã điểm danh buổi này")
+        raise HTTPException(409, "Bạn đã điểm danh buổi học này rồi")
     db.refresh(attendance)
     return attendance
 

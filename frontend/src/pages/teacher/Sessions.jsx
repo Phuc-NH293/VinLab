@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, CalendarPlus, CheckCircle2, Clock3, Copy, MapPin, Maximize2, QrCode, UserCheck, UserX, Users, X } from 'lucide-react';
+import { ArrowRight, CalendarPlus, CheckCircle2, Clock3, Copy, MapPin, Maximize2, QrCode, RefreshCw, UserCheck, UserX, Users, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { api } from '../../lib/api';
 import { EmptyState, SectionHeading } from '../../components';
@@ -13,6 +13,7 @@ export function Sessions() {
   const [subjects, setSubjects] = useState([]);
   const [message, setMessage] = useState('');
   const [creating, setCreating] = useState(false);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [presentingSession, setPresentingSession] = useState(null);
   const [form, setForm] = useState({
@@ -38,6 +39,16 @@ export function Sessions() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (!selectedSessionId) {
+      setAttendances([]);
+      return undefined;
+    }
+    loadAttendances(selectedSessionId);
+    const refreshTimer = window.setInterval(() => loadAttendances(selectedSessionId, true), 5000);
+    return () => window.clearInterval(refreshTimer);
+  }, [selectedSessionId]);
 
   async function submit(event) {
     event.preventDefault();
@@ -75,8 +86,23 @@ export function Sessions() {
     }
   }
 
-  async function view(id) {
-    setAttendances(await api(`/sessions/${id}/attendances`));
+  async function loadAttendances(id = selectedSessionId, silent = false) {
+    if (!id) return;
+    if (!silent) setAttendanceLoading(true);
+    try {
+      setAttendances(await api(`/sessions/${id}/attendances`));
+    } catch (error) {
+      if (!silent) setMessage(`❌ ${error.message}`);
+    } finally {
+      if (!silent) setAttendanceLoading(false);
+    }
+  }
+
+  function view(id) {
+    setSelectedSessionId(String(id));
+    window.setTimeout(() => {
+      document.getElementById('session-attendance-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }
 
   async function toggleSession(session) {
@@ -162,6 +188,9 @@ export function Sessions() {
                   <button className="btn-secondary" type="button" onClick={() => copyToken(selectedSession)}>
                     <Copy size={17} />Sao chép mã
                   </button>
+                  <button className="btn-secondary" type="button" onClick={() => loadAttendances()}>
+                    <RefreshCw size={17} />Làm mới danh sách ({attendances.length})
+                  </button>
                 </div>
               </div>
             </div>
@@ -198,23 +227,47 @@ export function Sessions() {
         ))}
       </div>
 
-      {attendances.length > 0 && (
-        <section className="card">
-          <SectionHeading icon={CheckCircle2} kicker="Đã xác nhận" title="Danh sách điểm danh" />
-          <div className="mt-5 divide-y divide-slate-100">
-            {attendances.map(attendance => (
-              <div className="flex items-center gap-3 py-3" key={attendance.id}>
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><CheckCircle2 size={20} /></div>
-                <div>
-                  <p className="font-bold text-slate-900">{attendance.full_name}</p>
-                  <p className="text-sm text-slate-500">{attendance.student_code}</p>
+      <section className="card" id="session-attendance-list">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SectionHeading
+            icon={CheckCircle2}
+            kicker="Cập nhật tự động"
+            title={`Danh sách điểm danh · ${selectedSession?.title || 'Chưa chọn buổi'}`}
+            description="Danh sách tự làm mới mỗi 5 giây sau khi sinh viên quét QR."
+          />
+          <div className="flex items-center gap-2">
+            <span className="count-badge">{attendances.length} sinh viên</span>
+            <button className="btn-secondary" type="button" onClick={() => loadAttendances()} disabled={!selectedSessionId || attendanceLoading}>
+              <RefreshCw size={17} className={attendanceLoading ? 'animate-spin' : ''} />
+              {attendanceLoading ? 'Đang tải...' : 'Làm mới'}
+            </button>
+          </div>
+        </div>
+        {attendances.length === 0 && !attendanceLoading ? (
+          <div className="mt-5">
+            <EmptyState icon={Users} text="Chưa có sinh viên điểm danh trong buổi này." />
+          </div>
+        ) : (
+          <div className="session-attendance-list mt-5">
+            {attendances.map((attendance, index) => (
+              <div className="session-attendance-row" key={attendance.id}>
+                <div className="session-attendance-number">{index + 1}</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                  <CheckCircle2 size={20} />
                 </div>
-                <span className="ml-auto text-xs font-semibold text-slate-400">{attendance.checked_at}</span>
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-900">{attendance.full_name}</p>
+                  <p className="text-sm text-slate-500">{attendance.student_code} · {attendance.class_name || 'Chưa có lớp'}</p>
+                </div>
+                <div className="session-attendance-meta">
+                  <span>{attendance.method}</span>
+                  <time>{new Date(attendance.checked_at).toLocaleString('vi-VN')}</time>
+                </div>
               </div>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {presentingSession && (
         <div className="qr-presentation" role="dialog" aria-modal="true" aria-label="Mã QR điểm danh">

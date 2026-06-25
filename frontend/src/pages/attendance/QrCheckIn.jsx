@@ -63,7 +63,8 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
       });
       setMessage('✅ Điểm danh thành công');
     } catch (error) {
-      setMessage(`❌ ${error.message}`);
+      const duplicate = error.message.toLocaleLowerCase('vi').includes('đã điểm danh');
+      setMessage(duplicate ? `ℹ️ ${error.message}` : `❌ ${error.message}`);
     }
   }
 
@@ -166,9 +167,12 @@ export function QrCheckIn({ registerCameraStop, currentUser }) {
           } catch (error) {
             if (mountedRef.current) {
               const isInvalidQr = error.message.toLocaleLowerCase('vi').includes('qr không hợp lệ');
-              setMessage(isInvalidQr
-                ? '❌ Mã vừa quét không phải QR điểm danh đang tồn tại trên hệ thống.'
-                : `❌ ${error.message}`);
+              const duplicate = error.message.toLocaleLowerCase('vi').includes('đã điểm danh');
+              setMessage(duplicate
+                ? `ℹ️ ${error.message}`
+                : isInvalidQr
+                  ? '❌ Mã vừa quét không phải QR điểm danh đang tồn tại trên hệ thống.'
+                  : `❌ ${error.message}`);
               window.setTimeout(() => {
                 if (!mountedRef.current) return;
                 disposedRef.current = false;
