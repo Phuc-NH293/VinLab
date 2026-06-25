@@ -5,13 +5,19 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from functools import lru_cache
+from pathlib import Path
+import base64
 import json
 import math
 import os
 import secrets
+from dotenv import load_dotenv
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlencode
-from urllib.request import urlopen
+from urllib.parse import parse_qs, quote, urlencode, urlparse
+from urllib.request import Request as URLRequest, urlopen
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
 from .database import Base, engine, get_db, ensure_schema_columns
 from .models import (
     Student,
@@ -52,6 +58,7 @@ from .schemas import (
     AttendanceReview,
     AppealCreate,
     AppealReview,
+    AIChatRequest,
 )
 from .cv_service import create_face_thumbnail, extract_face_vector
 from .auth import (
@@ -83,6 +90,7 @@ LESSON_TITLES = {
     6: "Xây dựng nguyên mẫu thử nghiệm",
 }
 MAX_SLIDE_SIZE = 20 * 1024 * 1024
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
 def serialize_user(user: User):
     return {
@@ -114,6 +122,193 @@ def serialize_lesson_slide(slide: LessonSlide):
         "uploaded_by": slide.uploaded_by,
         "uploaded_at": slide.uploaded_at,
         "updated_at": slide.updated_at,
+    }
+
+
+def normalize_qr_token(raw_value: str):
+    value = (raw_value or "").strip()
+    if not value:
+        return ""
+
+    if value.upper().startswith("VINLAB:"):
+        return value.split(":", 1)[1].strip()
+
+    if value.startswith("{"):
+        try:
+            payload = json.loads(value)
+            return str(payload.get("qr_token") or payload.get("token") or "").strip()
+        except (json.JSONDecodeError, AttributeError):
+            return value
+
+    if value.startswith(("http://", "https://")):
+        parsed = urlparse(value)
+        query = parse_qs(parsed.query)
+        token = (query.get("qr") or query.get("qr_token") or query.get("token") or [""])[0]
+        if token:
+            return token.strip()
+
+    return value
+
+
+def generate_ai_chat_reply(payload: AIChatRequest, slide: LessonSlide | None):
+    api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
+    if not api_key:
+        raise HTTPException(503, "Gemini chưa được cấu hình. Hãy đặt biến môi trường GEMINI_API_KEY.")
+
+    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+    history_lines = []
+    for item in payload.history[-8:]:
+        role = "Sinh viên" if item.role in {"user", "student"} else "Trợ giảng"
+        history_lines.append(f"{role}: {item.text[:2000]}")
+    history_text = "\n".join(history_lines) or "(Chưa có lịch sử)"
+
+    lesson_context = (
+        f"Bài học: {slide.title or LESSON_TITLES.get(slide.lesson_id, '')}. "
+        f"Tệp slide: {slide.file_name}."
+        if slide
+        else "Không có slide PDF được cung cấp cho lượt hỏi này."
+    )
+    teaching_style = (
+        "Ưu tiên gợi mở bằng một câu hỏi ngắn, sau đó mới giải thích đủ để sinh viên tiến bộ."
+        if payload.socratic_mode
+        else "Trả lời trực tiếp, rõ ràng và có ví dụ ngắn khi hữu ích."
+    )
+    prompt = f"""
+Bạn là trợ giảng AI cho sinh viên Việt Nam. Trả lời hoàn toàn bằng tiếng Việt.
+{teaching_style}
+
+Ngữ cảnh:
+- Chủ đề: {payload.topic or "AI"}
+- {lesson_context}
+
+Quy tắc trả lời và nguồn:
+1. answer luôn là câu trả lời chính bằng kiến thức của Gemini, độc lập, dễ hiểu và không nhắc tới slide.
+2. Sau khi viết answer, kiểm tra PDF. Nếu PDF có nội dung liên quan, viết slide_answer để tóm tắt riêng điều slide nói và đặt source_type là "mixed".
+3. Nếu PDF không có nội dung liên quan hoặc không được cung cấp, slide_answer là chuỗi rỗng, source_type là "general" và citations là [].
+4. Mỗi ý trong slide_answer phải được hỗ trợ bởi citations. citations chỉ chứa trang thực sự liên quan.
+5. page là số trang PDF bắt đầu từ 1. quote là một đoạn trích ngắn, sát nguyên văn trên đúng trang đó.
+6. Không được bịa số trang hoặc đoạn trích. Không trộn nội dung slide vào answer.
+7. Không tự viết tiêu đề "Gemini", "Trong slide" hay "Nguồn" vì giao diện sẽ thêm các tiêu đề này.
+
+Lịch sử hội thoại:
+{history_text}
+
+Câu hỏi hiện tại:
+{payload.message}
+""".strip()
+
+    parts = []
+    if slide:
+        parts.append({
+            "inline_data": {
+                "mime_type": "application/pdf",
+                "data": base64.b64encode(slide.file_data).decode("ascii"),
+            }
+        })
+    parts.append({"text": prompt})
+
+    request_body = {
+        "contents": [{"role": "user", "parts": parts}],
+        "generationConfig": {
+            "temperature": 0.25,
+            "maxOutputTokens": 1400,
+            "responseMimeType": "application/json",
+            "responseSchema": {
+                "type": "OBJECT",
+                "required": ["answer", "slide_answer", "source_type", "citations"],
+                "properties": {
+                    "answer": {"type": "STRING"},
+                    "slide_answer": {"type": "STRING"},
+                    "source_type": {
+                        "type": "STRING",
+                        "enum": ["general", "mixed"],
+                    },
+                    "citations": {
+                        "type": "ARRAY",
+                        "maxItems": 5,
+                        "items": {
+                            "type": "OBJECT",
+                            "required": ["page", "quote"],
+                            "properties": {
+                                "page": {"type": "INTEGER", "minimum": 1},
+                                "quote": {"type": "STRING"},
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+    request = URLRequest(
+        GEMINI_API_URL.format(model=quote(model, safe="")),
+        data=json.dumps(request_body).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key,
+        },
+        method="POST",
+    )
+
+    try:
+        with urlopen(request, timeout=60) as response:
+            gemini_payload = json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        try:
+            error_payload = json.loads(error.read().decode("utf-8"))
+            detail = error_payload.get("error", {}).get("message")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            detail = None
+        raise HTTPException(502, detail or "Gemini API trả về lỗi")
+    except (URLError, TimeoutError, json.JSONDecodeError):
+        raise HTTPException(502, "Không thể kết nối tới Gemini API")
+
+    try:
+        raw_text = "".join(
+            part.get("text", "")
+            for part in gemini_payload["candidates"][0]["content"]["parts"]
+        )
+        result = json.loads(raw_text)
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+        raise HTTPException(502, "Gemini không trả về câu trả lời hợp lệ")
+
+    answer = str(result.get("answer") or "").strip()
+    if not answer:
+        raise HTTPException(502, "Gemini trả về câu trả lời trống")
+
+    slide_answer = str(result.get("slide_answer") or "").strip()
+    source_type = result.get("source_type")
+    if source_type not in {"general", "mixed"}:
+        source_type = "general"
+
+    citations = []
+    if slide and source_type == "mixed":
+        for citation in result.get("citations") or []:
+            try:
+                page = int(citation.get("page"))
+            except (TypeError, ValueError):
+                continue
+            citation_quote = str(citation.get("quote") or "").strip()
+            if page > 0 and citation_quote:
+                citations.append({
+                    "page": page,
+                    "quote": citation_quote[:500],
+                })
+            if len(citations) == 5:
+                break
+
+    if not slide_answer or not citations:
+        source_type = "general"
+        slide_answer = ""
+        citations = []
+
+    return {
+        "answer": answer,
+        "slide_answer": slide_answer,
+        "source_type": source_type,
+        "citations": citations,
+        "lesson_id": slide.lesson_id if slide else None,
+        "slide_title": slide.title if slide else None,
+        "model": model,
     }
 
 def face_similarity(probe, stored_vectors):
@@ -311,6 +506,20 @@ def auth_me(current_user: User = Depends(get_current_user)):
     return serialize_user(current_user)
 
 
+@app.post("/api/ai/chat")
+def ai_chat(
+    payload: AIChatRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    slide = None
+    if payload.lesson_id is not None:
+        if payload.lesson_id not in LESSON_TITLES:
+            raise HTTPException(404, "Bài học không tồn tại")
+        slide = db.query(LessonSlide).filter(LessonSlide.lesson_id == payload.lesson_id).first()
+    return generate_ai_chat_reply(payload, slide)
+
+
 @app.get("/api/lessons/slides")
 def list_lesson_slides(
     db: Session = Depends(get_db),
@@ -351,7 +560,7 @@ async def upload_lesson_slide(
     if lesson_id not in LESSON_TITLES:
         raise HTTPException(404, "Bài học không tồn tại")
     file_name = (file.filename or "").strip()
-    if file.content_type != "application/pdf" or not file_name.lower().endswith(".pdf"):
+    if not file_name.lower().endswith(".pdf"):
         raise HTTPException(400, "Chỉ chấp nhận file PDF")
     file_data = await file.read(MAX_SLIDE_SIZE + 1)
     if not file_data.startswith(b"%PDF-"):
@@ -640,7 +849,8 @@ def check_in(
     student = db.query(Student).filter(Student.student_code == payload.student_code).first()
     if not student:
         raise HTTPException(404, "Không tìm thấy sinh viên")
-    session = db.query(LabSession).filter(LabSession.qr_token == payload.qr_token).first()
+    qr_token = normalize_qr_token(payload.qr_token)
+    session = db.query(LabSession).filter(LabSession.qr_token == qr_token).first()
     if not session:
         raise HTTPException(404, "QR không hợp lệ")
     if session.status != "active":

@@ -27,6 +27,18 @@ uvicorn app.main:app --reload
 ```
 Backend chạy ở: http://localhost:8000
 
+### Cấu hình Gemini cho AI Chat
+
+Đặt biến môi trường trước khi chạy backend:
+
+```powershell
+$env:GEMINI_API_KEY="your-gemini-api-key"
+$env:GEMINI_MODEL="gemini-2.5-flash" # không bắt buộc
+```
+
+AI Chat sẽ ưu tiên đọc PDF slide của bài học và trả về trích dẫn theo số trang. Nếu slide
+không có thông tin liên quan hoặc chưa được tải lên, Gemini sẽ trả lời bằng kiến thức chung.
+
 ## Chạy frontend
 ```bash
 cd frontend

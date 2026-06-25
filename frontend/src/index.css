@@ -869,6 +869,124 @@ button {
   @apply block max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500;
 }
 
+.session-qr-focus {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.session-qr-focus h3 {
+  margin-top: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.session-qr-focus p {
+  margin: 0.25rem 0 0.75rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.session-qr-large {
+  padding: 1rem;
+}
+
+.qr-presentation {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px);
+}
+
+.qr-presentation-close {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: white;
+  color: #0f172a;
+}
+
+.qr-presentation-card {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 620px);
+  padding: 2rem;
+  border-radius: 2rem;
+  background: white;
+  text-align: center;
+}
+
+.qr-presentation-card p {
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.qr-presentation-card h2 {
+  margin-top: 0.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 950;
+  color: #0f172a;
+}
+
+.qr-presentation-card > span {
+  margin: 0.25rem 0 1.5rem;
+  color: #64748b;
+}
+
+.qr-presentation-card svg {
+  width: min(70vw, 360px);
+  height: auto;
+}
+
+.qr-presentation-card code {
+  margin-top: 1.25rem;
+  font-size: 1rem;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+.qr-debug-value {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.qr-debug-value code {
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .session-qr-focus {
+    grid-template-columns: 1fr;
+  }
+
+  .session-qr-large {
+    justify-self: center;
+  }
+
+  .qr-presentation-card {
+    padding: 1.5rem 1rem;
+    border-radius: 1.5rem;
+  }
+}
+
 .scanner-shell {
   @apply relative overflow-hidden rounded-[1.5rem] border-4 border-slate-900 bg-slate-950 p-2;
   min-height: 360px;
@@ -1722,6 +1840,52 @@ button {
   @apply bg-gradient-to-br from-red-600 to-rose-500 text-white self-end ml-auto rounded-tr-none shadow-red-500/5;
 }
 
+.ai-chat-answer {
+  white-space: pre-wrap;
+}
+
+.ai-chat-section-label {
+  margin-bottom: 0.3rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #4f46e5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ai-chat-slide-section {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ai-chat-section-label-slide {
+  color: #047857;
+}
+
+.ai-chat-citations {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+}
+
+.ai-chat-citation {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  border-left: 3px solid #ef4444;
+  border-radius: 0.5rem;
+  background: rgba(248, 250, 252, 0.92);
+  color: #475569;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.ai-chat-citation strong {
+  color: #b91c1c;
+  font-size: 0.68rem;
+}
+
 .socratic-chat-pills {
   @apply flex flex-wrap gap-2 px-6 py-2 border-t border-slate-50 bg-white;
 }
@@ -2069,11 +2233,61 @@ button {
   @apply mt-5 grid items-end gap-4 lg:grid-cols-[0.9fr_1.3fr_auto];
 }
 
-.lesson-slide-file {
-  @apply cursor-pointer py-2;
+.lesson-slide-upload > * {
+  @apply min-w-0;
 }
 
-.lesson-slide-upload small {
+.lesson-slide-file-field {
+  @apply block;
+}
+
+.lesson-slide-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.lesson-slide-picker {
+  @apply mt-2 flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 normal-case tracking-normal text-slate-600 transition hover:border-red-300 hover:bg-red-50/50;
+}
+
+.lesson-slide-picker > svg {
+  @apply shrink-0 text-red-500;
+}
+
+.lesson-slide-picker > span {
+  @apply min-w-0 flex-1;
+}
+
+.lesson-slide-picker strong,
+.lesson-slide-picker small {
+  @apply block truncate;
+}
+
+.lesson-slide-picker strong {
+  @apply text-sm font-extrabold text-slate-700;
+}
+
+.lesson-slide-picker small {
+  @apply mt-0.5 text-[10px] font-semibold text-slate-400;
+}
+
+.lesson-slide-picker-selected {
+  @apply border-solid border-emerald-200 bg-emerald-50/70;
+}
+
+.lesson-slide-file-input:focus-visible + .lesson-slide-picker {
+  @apply border-red-400 ring-4 ring-red-100;
+}
+
+.lesson-slide-upload > label > small,
+.lesson-slide-file-field > small {
   @apply mt-1.5 block text-[10px] font-semibold text-slate-400;
 }
 
@@ -2098,11 +2312,11 @@ button {
 }
 
 .lesson-slide-row p {
-  @apply text-xs font-black text-slate-800;
+  @apply break-words text-xs font-black text-slate-800;
 }
 
 .lesson-slide-row span {
-  @apply mt-1 block truncate text-[10px] font-semibold text-slate-400;
+  @apply mt-1 block break-all text-[10px] font-semibold text-slate-400;
 }
 
 .lesson-slide-actions {
@@ -2157,6 +2371,60 @@ button {
 
   .topbar .brand-mark + div > p {
     @apply hidden;
+  }
+
+  .admin-list-row {
+    @apply flex-wrap;
+  }
+
+  .compact-select {
+    @apply max-w-full;
+  }
+
+  .leave-review-row > div:last-child {
+    @apply grid w-full grid-cols-2;
+  }
+
+  .leave-review-row > div:last-child .attendance-action {
+    @apply w-full;
+  }
+
+  .socratic-chat-layout {
+    height: min(620px, calc(100dvh - 8.5rem));
+    min-height: 500px;
+  }
+
+  .socratic-chat-header,
+  .socratic-chat-messages {
+    @apply px-4;
+  }
+
+  .socratic-chat-pills {
+    @apply flex-nowrap overflow-x-auto px-4;
+  }
+
+  .socratic-chat-pill-btn {
+    @apply shrink-0;
+  }
+
+  .socratic-chat-footer {
+    @apply gap-2 p-3;
+  }
+
+  .socratic-metrics-grid {
+    @apply gap-2;
+  }
+
+  .socratic-metric-card {
+    @apply min-w-0 gap-3 p-3;
+  }
+
+  .socratic-metric-info {
+    @apply min-w-0;
+  }
+
+  .socratic-metric-info span {
+    @apply truncate;
   }
 
   .status-pill {
@@ -2270,7 +2538,15 @@ button {
   }
 
   .lesson-slide-actions {
-    @apply col-span-2 justify-end;
+    @apply col-span-2 grid grid-cols-[minmax(0,1fr)_auto];
+  }
+
+  .lesson-slide-actions .btn-secondary {
+    @apply justify-center;
+  }
+
+  .lesson-slide-submit {
+    @apply w-full;
   }
 
   .socratic-pdf-viewer {
@@ -2343,6 +2619,14 @@ button {
 }
 
 @media (max-width: 390px) {
+  .session-card > div > div:first-child {
+    @apply flex-col;
+  }
+
+  .session-card .qr-wrap {
+    @apply self-center;
+  }
+
   .socratic-slide-mode .socratic-navbar {
     top: 57px;
   }

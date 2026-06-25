@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 class StudentCreate(BaseModel):
@@ -140,3 +140,16 @@ class AppealCreate(BaseModel):
 class AppealReview(BaseModel):
     status: str
     review_note: str | None = None
+
+
+class AIChatHistoryItem(BaseModel):
+    role: str
+    text: str = Field(min_length=1, max_length=4000)
+
+
+class AIChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=4000)
+    lesson_id: int | None = None
+    topic: str | None = Field(default=None, max_length=100)
+    socratic_mode: bool = True
+    history: list[AIChatHistoryItem] = Field(default_factory=list, max_length=12)
