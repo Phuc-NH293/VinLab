@@ -423,7 +423,7 @@ def flag_shared_device(db: Session, student_id: int, session_id: int, device_id:
         student_id=student_id,
         session_id=session_id,
         alert_type="shared_device",
-        details=f"Device {device_id} was used by multiple students in one session",
+        details=f"Thiết bị {device_id} được nhiều sinh viên sử dụng trong cùng một buổi học",
         severity="high",
     ))
     return True
@@ -873,15 +873,17 @@ def check_in(
         raise HTTPException(400, "Ngoài thời gian điểm danh")
     status = "late" if now.timestamp() > session.start_time.timestamp() + 15 * 60 else "present"
     device_id = request.headers.get("x-device-id")
-    if flag_shared_device(db, student.id, session.id, device_id):
-        db.commit()
-        raise HTTPException(400, "Thiáº¿t bá»‹ nĂ y Ä‘Ă£ Ä‘Æ°á»£c dĂ¹ng Ä‘iá»ƒm danh cho sinh viĂªn khĂ¡c")
+    shared_device = flag_shared_device(db, student.id, session.id, device_id)
     attendance = Attendance(
         student_id=student.id,
         session_id=session.id,
         method="QR",
         status=status,
         device_id=device_id,
+        review_note=(
+            "Cảnh báo: Thiết bị này đã được dùng điểm danh cho sinh viên khác trong cùng buổi học."
+            if shared_device else None
+        ),
     )
     db.add(attendance)
     try:
